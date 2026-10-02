@@ -3,15 +3,20 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 
+const routes = require("./routes");
+const notFound = require("./middlewares/not-found");
+const errorHandler = require("./middlewares/error-handler");
+
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("BeeUX API is running");
-});
+app.use(routes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 mongoose
   .connect(process.env.MONGODB_URI)
