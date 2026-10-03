@@ -1,0 +1,20 @@
+:root {
+  --beeux-yellow: #f9cb10;
+  --beeux-navy: #1e2937;
+  --beeux-black: #1d1d1b;
+  --beeux-white: #ffffff;
+
+  --beeux-gray-50: #f8f9fa;
+  --beeux-gray-100: #f1f3f5;
+  --beeux-gray-300: #d9dee5;
+  --beeux-gray-600: #667085;
+
+  --beeux-radius-sm: 8px;
+  --beeux-radius-md: 16px;
+  --beeux-radius-lg: 24px;
+
+  --beeux-shadow-sm: 0 4px 14px rgba(30, 41, 55, 0.06);
+  --beeux-shadow-md: 0 12px 32px rgba(30, 41, 55, 0.1);
+
+  --beeux-container: 1200px;
+}
