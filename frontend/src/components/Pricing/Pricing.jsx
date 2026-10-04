@@ -91,12 +91,7 @@ function Pricing() {
                   Ver todo lo que incluye →
                 </a>
 
-                <a
-                  className={`pricing__button ${
-                    plan.featured ? "pricing__button--featured" : ""
-                  }`}
-                  href="#contact"
-                >
+                <a className="pricing__button" href={`/services/${plan.slug}`}>
                   Comenzar
                 </a>
 
