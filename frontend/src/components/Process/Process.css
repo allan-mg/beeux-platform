@@ -1,0 +1,133 @@
+.process {
+  padding: 96px 0;
+  background-color: var(--beeux-white);
+}
+
+.process__container {
+  width: min(100% - 32px, var(--beeux-container));
+  margin: 0 auto;
+}
+
+.process__header {
+  max-width: 680px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+
+.process__eyebrow {
+  margin: 0 0 14px;
+
+  color: var(--beeux-gray-600);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.process__title {
+  margin: 0;
+
+  color: var(--beeux-navy);
+  font-size: clamp(36px, 4vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+
+.process__intro {
+  margin: 18px auto 0;
+
+  color: var(--beeux-gray-600);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.process__steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+.process__step {
+  position: relative;
+  padding-right: 12px;
+}
+
+.process__top {
+  margin-bottom: 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.process__number {
+  color: var(--beeux-yellow);
+  font-family: "Gilmer", "Poppins", sans-serif;
+  font-size: 14px;
+}
+
+.process__icon {
+  width: 48px;
+  height: 48px;
+
+  border: 1px solid var(--beeux-gray-300);
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--beeux-navy);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.process__step-title {
+  margin: 0 0 10px;
+
+  color: var(--beeux-navy);
+  font-size: 22px;
+}
+
+.process__description {
+  margin: 0;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.process__connector {
+  position: absolute;
+  top: 47px;
+  right: -20px;
+
+  width: 40px;
+  height: 1px;
+
+  background-color: var(--beeux-gray-300);
+}
+
+@media screen and (max-width: 950px) {
+  .process__steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 42px 28px;
+  }
+
+  .process__connector {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .process {
+    padding: 72px 0;
+  }
+
+  .process__header {
+    text-align: left;
+  }
+
+  .process__steps {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,6 +5,10 @@ import WhyBeeUX from "../../components/WhyBeeUX/WhyBeeUX";
 import "./Home.css";
 import CaseStudy from "../../components/CaseStudy/CaseStudy";
 import Pricing from "../../components/Pricing/Pricing";
+import Process from "../../components/Process/Process";
+import Testimonials from "../../components/Testimonials/Testimonials";
+import FinalCTA from "../../components/FinalCTA/FinalCTA";
+import Footer from "../../components/Footer/Footer";
 
 function Home() {
   return (
@@ -17,6 +21,10 @@ function Home() {
         <WhyBeeUX />
         <CaseStudy />
         <Pricing />
+        <Process />
+        <Testimonials />
+        <FinalCTA />
+        <Footer />
       </main>
     </>
   );
