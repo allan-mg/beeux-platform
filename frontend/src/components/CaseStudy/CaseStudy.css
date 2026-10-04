@@ -159,4 +159,8 @@
   .case-study__metrics {
     grid-template-columns: 1fr;
   }
+
+  .case-study__metric {
+    text-align: center;
+  }
 }

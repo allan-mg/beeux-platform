@@ -2,17 +2,17 @@ import "./Services.css";
 
 const services = [
   {
-    icon: "◫",
+    icon: "◌",
     title: "Administración de redes sociales",
     description: "Contenido que conecta y genera resultados.",
   },
   {
-    icon: "◉",
+    icon: "◆",
     title: "Diseño gráfico",
     description: "Identidad visual que hace destacar tu marca.",
   },
   {
-    icon: "</>",
+    icon: "<>",
     title: "Desarrollo web",
     description: "Sitios web modernos y orientados a la conversión.",
   },
@@ -27,7 +27,7 @@ const services = [
     description: "Campañas que generan oportunidades reales.",
   },
   {
-    icon: "⚙",
+    icon: "✦",
     title: "Automatización IA",
     description: "Procesos inteligentes para ayudarte a escalar.",
   },

@@ -3,28 +3,28 @@ import "./Process.css";
 const steps = [
   {
     number: "01",
-    icon: "◎",
+    icon: "◌",
     title: "Descubrimos",
     description:
       "Conocemos tu negocio, tus objetivos, tu audiencia y lo que quieres lograr.",
   },
   {
     number: "02",
-    icon: "◫",
+    icon: "◆",
     title: "Planeamos",
     description:
       "Diseñamos una estrategia clara y alineada con las necesidades de tu marca.",
   },
   {
     number: "03",
-    icon: "⚙",
+    icon: "✦",
     title: "Ejecutamos",
     description:
       "Convertimos el plan en acciones, contenido, campañas y experiencias digitales.",
   },
   {
     number: "04",
-    icon: "▥",
+    icon: "↗",
     title: "Medimos",
     description:
       "Analizamos resultados, optimizamos y buscamos oportunidades para seguir creciendo.",

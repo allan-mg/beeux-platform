@@ -32,6 +32,38 @@ function FinalCTA() {
             </a>
           </div>
         </div>
+        <div className="final-cta__dashboard" aria-hidden="true">
+          <div className="final-cta__dashboard-header">
+            <span>BeeUX Dashboard</span>
+            <span className="final-cta__status">En progreso</span>
+          </div>
+
+          <div className="final-cta__dashboard-card">
+            <p>Proyecto activo</p>
+            <strong>Diseño de marca</strong>
+
+            <div className="final-cta__progress">
+              <span className="final-cta__progress-bar" />
+            </div>
+
+            <div className="final-cta__dashboard-meta">
+              <span>60% completado</span>
+              <span>Entrega: 14 Oct</span>
+            </div>
+          </div>
+
+          <div className="final-cta__dashboard-row">
+            <div>
+              <span>Próximo paso</span>
+              <strong>Primera propuesta</strong>
+            </div>
+
+            <div>
+              <span>Reunión</span>
+              <strong>Google Meet</strong>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

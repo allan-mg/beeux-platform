@@ -56,8 +56,8 @@
 }
 
 .services__card {
-  min-height: 260px;
-  padding: 28px;
+  min-height: 235px;
+  padding: 26px;
 
   border: 1px solid var(--beeux-gray-100);
   border-radius: var(--beeux-radius-md);
@@ -78,9 +78,9 @@
 }
 
 .services__icon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 24px;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 20px;
 
   border-radius: 12px;
   background-color: rgba(249, 203, 16, 0.14);
@@ -98,12 +98,12 @@
   margin: 0 0 12px;
 
   color: var(--beeux-navy);
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.25;
 }
 
 .services__description {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
 
   color: var(--beeux-gray-600);
   font-size: 14px;

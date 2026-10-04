@@ -66,8 +66,8 @@
 }
 
 .process__icon {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
 
   border: 1px solid var(--beeux-gray-300);
   border-radius: 50%;
@@ -77,8 +77,10 @@
   justify-content: center;
 
   color: var(--beeux-navy);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
+
+  background-color: var(--beeux-white);
 }
 
 .process__step-title {
@@ -102,7 +104,7 @@
   right: -20px;
 
   width: 40px;
-  height: 1px;
+  height: 2px;
 
   background-color: var(--beeux-gray-300);
 }
@@ -129,5 +131,14 @@
 
   .process__steps {
     grid-template-columns: 1fr;
+  }
+
+  .process__step {
+    text-align: center;
+    padding-right: 0;
+  }
+
+  .process__top {
+    justify-content: center;
   }
 }

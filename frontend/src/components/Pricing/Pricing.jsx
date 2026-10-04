@@ -79,13 +79,17 @@ function Pricing() {
                 </div>
 
                 <ul className="pricing__features">
-                  {plan.features.slice(0, 4).map((feature) => (
+                  {plan.features.slice(0, 3).map((feature) => (
                     <li className="pricing__feature" key={feature}>
                       <span>✓</span>
                       {feature}
                     </li>
                   ))}
                 </ul>
+
+                <a className="pricing__details" href={`/services/${plan.slug}`}>
+                  Ver todo lo que incluye →
+                </a>
 
                 <a
                   className={`pricing__button ${

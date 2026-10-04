@@ -1,5 +1,5 @@
 .why-beeux {
-  padding: 88px 0;
+  padding: 80px 0;
   background-color: var(--beeux-gray-50);
 }
 
@@ -10,7 +10,7 @@
 
 .why-beeux__header {
   max-width: 760px;
-  margin: 0 auto 48px;
+  margin: 0 auto 42px;
 
   text-align: center;
 }

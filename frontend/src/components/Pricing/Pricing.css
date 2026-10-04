@@ -54,7 +54,7 @@
 .pricing__card {
   position: relative;
 
-  padding: 34px;
+  padding: 30px;
 
   border: 1px solid var(--beeux-gray-100);
   border-radius: var(--beeux-radius-md);
@@ -95,7 +95,7 @@
 }
 
 .pricing__plan-description {
-  min-height: 48px;
+  min-height: 42px;
   margin: 10px 0 24px;
 
   color: var(--beeux-gray-600);
@@ -131,7 +131,7 @@
 }
 
 .pricing__features {
-  margin: 0 0 32px;
+  margin: 0 0 24px;
   padding: 0;
 
   list-style: none;
@@ -153,6 +153,21 @@
 .pricing__feature span {
   color: var(--beeux-yellow);
   font-weight: 700;
+}
+
+.pricing__details {
+  width: fit-content;
+  margin: -10px 0 28px;
+
+  color: var(--beeux-navy);
+  font-size: 13px;
+  font-weight: 700;
+
+  transition: color 0.2s ease;
+}
+
+.pricing__details:hover {
+  color: var(--beeux-yellow);
 }
 
 .pricing__button {
