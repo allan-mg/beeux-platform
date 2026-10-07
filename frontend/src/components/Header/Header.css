@@ -81,3 +81,60 @@
     font-size: 13px;
   }
 }
+
+.header__account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__account-link {
+  color: var(--beeux-navy);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.header__account-button {
+  min-height: 40px;
+  padding: 0 16px;
+
+  border-radius: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.header__logout {
+  border: 0;
+  padding: 0;
+
+  background: transparent;
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+@media screen and (max-width: 900px) {
+  .header__account-link {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .header__account-button {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}

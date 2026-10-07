@@ -1,0 +1,101 @@
+const bcrypt = require("bcryptjs");
+const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+
+const createUser = (req, res, next) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    const error = new Error("Name, email and password are required");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  if (password.length < 8) {
+    const error = new Error("Password must be at least 8 characters long");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) =>
+      User.create({
+        name,
+        email,
+        password: hash,
+      }),
+    )
+    .then((user) => {
+      res.status(201).send({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        const error = new Error("Email already registered");
+        error.statusCode = 409;
+        return next(error);
+      }
+
+      return next(err);
+    });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    const error = new Error("Email and password are required");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  return User.findOne({ email })
+    .select("+password")
+    .then((user) => {
+      if (!user) {
+        const error = new Error("Email or password is incorrect");
+        error.statusCode = 401;
+        throw error;
+      }
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          const error = new Error("Email or password is incorrect");
+          error.statusCode = 401;
+          throw error;
+        }
+
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+          expiresIn: "7d",
+        });
+
+        res.send({ token });
+      });
+    })
+    .catch(next);
+};
+
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      res.send(user);
+    })
+    .catch(next);
+};
+
+module.exports = {
+  createUser,
+  login,
+  getCurrentUser,
+};
