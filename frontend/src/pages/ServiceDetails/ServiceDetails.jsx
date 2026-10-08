@@ -4,6 +4,8 @@ import { getServices } from "../../api/servicesApi";
 import "./ServiceDetails.css";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import { useNavigate } from "react-router-dom";
+import { createOrder } from "../../api/ordersApi";
 
 function ServiceDetails() {
   const { slug } = useParams();
@@ -11,6 +13,10 @@ function ServiceDetails() {
   const [service, setService] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState("");
+  const navigate = useNavigate();
+
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   useEffect(() => {
     getServices()
@@ -39,6 +45,33 @@ function ServiceDetails() {
   if (apiError) {
     return <main className="service-details">{apiError}</main>;
   }
+
+  const handleCreateOrder = () => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    setIsCreatingOrder(true);
+    setOrderError("");
+
+    createOrder({
+      token,
+      serviceSlug: service.slug,
+      billingType: "monthly",
+    })
+      .then((order) => {
+        navigate(`/checkout/${order._id}`);
+      })
+      .catch((error) => {
+        setOrderError(error);
+      })
+      .finally(() => {
+        setIsCreatingOrder(false);
+      });
+  };
 
   return (
     <>
@@ -71,9 +104,18 @@ function ServiceDetails() {
             </p>
           </div>
           <div className="service-details__actions">
-            <button className="service-details__primary-button" type="button">
-              Contratar este servicio
+            <button
+              className="service-details__primary-button"
+              type="button"
+              onClick={handleCreateOrder}
+              disabled={isCreatingOrder}
+            >
+              {isCreatingOrder ? "Creando orden..." : "Contratar este servicio"}
             </button>
+
+            {orderError && (
+              <p className="service-details__order-error">{orderError}</p>
+            )}
 
             <a className="service-details__secondary-button" href="/#contact">
               Hablar con BeeUX

@@ -1,0 +1,109 @@
+.checkout {
+  min-height: 70vh;
+  padding: 80px 0 96px;
+
+  background-color: var(--beeux-gray-100);
+}
+
+.checkout__container {
+  width: min(100% - 32px, 720px);
+  margin: 0 auto;
+}
+
+.checkout__eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+
+  color: var(--beeux-yellow);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.checkout__title {
+  margin: 0 0 32px;
+
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: clamp(40px, 6vw, 58px);
+  line-height: 1;
+}
+
+.checkout__card {
+  padding: 32px;
+
+  border-radius: 16px;
+  background-color: var(--beeux-white);
+}
+
+.checkout__row,
+.checkout__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.checkout__row {
+  padding: 14px 0;
+
+  border-bottom: 1px solid var(--beeux-gray-300);
+}
+
+.checkout__row span,
+.checkout__total span {
+  color: var(--beeux-gray-600);
+}
+
+.checkout__total {
+  padding: 24px 0;
+
+  font-size: 20px;
+}
+
+.checkout__total strong {
+  color: var(--beeux-navy);
+  font-size: 28px;
+}
+
+.checkout__notice {
+  margin: 0 0 24px;
+  padding: 16px;
+
+  border-left: 4px solid var(--beeux-yellow);
+  border-radius: 8px;
+
+  background-color: #fff9db;
+
+  color: var(--beeux-gray-600);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.checkout__button {
+  width: 100%;
+  min-height: 52px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.checkout__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkout__error {
+  margin: 0 0 16px;
+
+  color: #a12a2a;
+  font-size: 13px;
+  line-height: 1.5;
+}

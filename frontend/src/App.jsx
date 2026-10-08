@@ -1,21 +1,28 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
+
 import Home from "./pages/Home/Home";
 import ServiceDetails from "./pages/ServiceDetails/ServiceDetails";
 import Register from "./pages/Register/Register";
 import Login from "./pages/Login/Login";
-import CurrentUserContext from "./contexts/CurrentUserContext";
-import { getCurrentUser } from "./api/authApi";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Checkout from "./pages/Checkout/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess/CheckoutSuccess";
+
+import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+
+import { getCurrentUser } from "./api/authApi";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
 
     if (!token) {
+      setIsAuthLoading(false);
       return;
     }
 
@@ -26,21 +33,51 @@ function App() {
       .catch(() => {
         localStorage.removeItem("jwt");
         setCurrentUser(null);
+      })
+      .finally(() => {
+        setIsAuthLoading(false);
       });
   }, []);
 
   return (
-    <CurrentUserContext.Provider value={{ currentUser, setCurrentUser }}>
+    <CurrentUserContext.Provider
+      value={{
+        currentUser,
+        setCurrentUser,
+        isAuthLoading,
+      }}
+    >
       <Routes>
         <Route path="/" element={<Home />} />
+
         <Route path="/services/:slug" element={<ServiceDetails />} />
+
         <Route path="/register" element={<Register />} />
+
         <Route path="/login" element={<Login />} />
+
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/checkout/:orderId"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout/success"
+          element={
+            <ProtectedRoute>
+              <CheckoutSuccess />
             </ProtectedRoute>
           }
         />

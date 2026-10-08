@@ -7,9 +7,17 @@ const cors = require("cors");
 const routes = require("./routes");
 const notFound = require("./middlewares/not-found");
 const errorHandler = require("./middlewares/error-handler");
+const { handleStripeWebhook } = require("./controllers/stripe");
 
 const app = express();
+
 app.use(cors());
+
+app.post(
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook,
+);
 
 const PORT = process.env.PORT || 3000;
 
