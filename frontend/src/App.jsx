@@ -16,13 +16,14 @@ import { getCurrentUser } from "./api/authApi";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(() =>
+    Boolean(localStorage.getItem("jwt")),
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
 
     if (!token) {
-      setIsAuthLoading(false);
       return;
     }
 
