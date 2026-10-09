@@ -1,9 +1,11 @@
 const Stripe = require("stripe");
+
 const Order = require("../models/order");
+const Contract = require("../models/contract");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const handleStripeWebhook = (req, res) => {
+const handleStripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
 
   let event;
@@ -20,24 +22,57 @@ const handleStripeWebhook = (req, res) => {
     });
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const orderId = session.metadata?.orderId;
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const orderId = session.metadata?.orderId;
 
-    if (orderId) {
-      Order.findByIdAndUpdate(orderId, {
-        status: "paid",
-        stripeCheckoutSessionId: session.id,
-        stripePaymentIntentId: session.payment_intent || null,
-      }).catch((error) => {
-        console.error("Error updating order:", error);
-      });
+      if (orderId) {
+        const order = await Order.findByIdAndUpdate(
+          orderId,
+          {
+            status: "paid",
+            stripeCheckoutSessionId: session.id,
+            stripePaymentIntentId: session.payment_intent || null,
+          },
+          {
+            new: true,
+          },
+        );
+
+        if (order) {
+          await Contract.findOneAndUpdate(
+            {
+              order: order._id,
+            },
+            {
+              $setOnInsert: {
+                user: order.user,
+                order: order._id,
+                service: order.service,
+                serviceName: order.serviceName,
+                status: "pending",
+              },
+            },
+            {
+              new: true,
+              upsert: true,
+            },
+          );
+        }
+      }
     }
-  }
 
-  return res.status(200).send({
-    received: true,
-  });
+    return res.status(200).send({
+      received: true,
+    });
+  } catch (error) {
+    console.error("Stripe webhook processing error:", error);
+
+    return res.status(500).send({
+      message: "Webhook processing error",
+    });
+  }
 };
 
 module.exports = {
