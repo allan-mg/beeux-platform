@@ -5,6 +5,11 @@ const getContractByOrder = (req, res, next) => {
     order: req.params.orderId,
     user: req.user._id,
   })
+    .populate("user", "name email")
+    .populate(
+      "order",
+      "serviceName serviceSlug amount currency billingType status createdAt",
+    )
     .then((contract) => {
       if (!contract) {
         const error = new Error("Contract not found");
@@ -17,6 +22,18 @@ const getContractByOrder = (req, res, next) => {
     .catch(next);
 };
 
+const getMyContracts = (req, res, next) => {
+  Contract.find({
+    user: req.user._id,
+  })
+    .sort({ createdAt: -1 })
+    .then((contracts) => {
+      res.send(contracts);
+    })
+    .catch(next);
+};
+
 module.exports = {
   getContractByOrder,
+  getMyContracts,
 };

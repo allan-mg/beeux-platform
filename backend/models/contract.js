@@ -28,8 +28,15 @@ const contractSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "sent", "signed", "rejected", "cancelled"],
-      default: "pending",
+      enum: [
+        "awaiting_legal_data",
+        "awaiting_verification",
+        "ready_to_sign",
+        "signed",
+        "rejected",
+        "cancelled",
+      ],
+      default: "awaiting_legal_data",
     },
 
     contractUrl: {
@@ -42,12 +49,27 @@ const contractSchema = new mongoose.Schema(
       default: null,
     },
 
+    generatedAt: {
+      type: Date,
+      default: null,
+    },
+
     sentAt: {
       type: Date,
       default: null,
     },
 
     signedAt: {
+      type: Date,
+      default: null,
+    },
+
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
+
+    cancelledAt: {
       type: Date,
       default: null,
     },

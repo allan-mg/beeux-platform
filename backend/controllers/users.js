@@ -1,6 +1,11 @@
 const bcrypt = require("bcryptjs");
-const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+
+const User = require("../models/user");
+
+const {
+  moveContractsToAwaitingVerification,
+} = require("../utils/contractFlow");
 
 const createUser = (req, res, next) => {
   const { name, email, password } = req.body;
@@ -94,8 +99,125 @@ const getCurrentUser = (req, res, next) => {
     .catch(next);
 };
 
+const isLegalProfileComplete = (legalProfile) => {
+  const {
+    entityType,
+    legalName,
+    taxId,
+    phone,
+    representativeName,
+    address = {},
+  } = legalProfile;
+
+  const requiredAddressFields = [
+    address.street,
+    address.exteriorNumber,
+    address.city,
+    address.state,
+    address.postalCode,
+    address.country,
+  ];
+
+  const basicDataComplete =
+    entityType &&
+    legalName &&
+    taxId &&
+    phone &&
+    requiredAddressFields.every((field) => Boolean(field?.trim()));
+
+  if (!basicDataComplete) {
+    return false;
+  }
+
+  if (entityType === "business" && !representativeName?.trim()) {
+    return false;
+  }
+
+  return true;
+};
+
+const updateLegalProfile = async (req, res, next) => {
+  try {
+    const {
+      entityType,
+      legalName,
+      taxId,
+      phone,
+      representativeName,
+      address = {},
+    } = req.body;
+
+    const allowedEntityTypes = ["individual", "business"];
+
+    if (!entityType || !allowedEntityTypes.includes(entityType)) {
+      const error = new Error("Invalid entity type");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const legalProfile = {
+      entityType,
+      legalName,
+      taxId,
+      phone,
+      representativeName,
+
+      address: {
+        street: address.street,
+        exteriorNumber: address.exteriorNumber,
+        interiorNumber: address.interiorNumber,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country,
+      },
+    };
+
+    if (!isLegalProfileComplete(legalProfile)) {
+      const error = new Error(
+        "Complete all required legal information before continuing",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          legalProfile,
+
+          "identityVerification.status": "unverified",
+          "identityVerification.verificationType": "",
+          "identityVerification.provider": "",
+          "identityVerification.referenceId": "",
+          "identityVerification.verifiedAt": null,
+        },
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+      },
+    );
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await moveContractsToAwaitingVerification(req.user._id);
+
+    res.send(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   login,
   getCurrentUser,
+  updateLegalProfile,
 };

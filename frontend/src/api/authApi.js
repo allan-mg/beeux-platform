@@ -55,3 +55,21 @@ export const getCurrentUser = (token) =>
 
     return data;
   });
+
+export const updateLegalProfile = ({ token, legalProfile }) =>
+  fetch(`${BASE_URL}/users/me/legal-profile`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(legalProfile),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

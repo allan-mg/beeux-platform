@@ -65,8 +65,299 @@
   font-size: 40px;
 }
 
+/* Sections */
+
+.dashboard__contracts,
+.dashboard__legal {
+  margin-top: 48px;
+}
+
+.dashboard__section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+
+  margin-bottom: 20px;
+}
+
+.dashboard__section-header--legal {
+  align-items: flex-start;
+}
+
+.dashboard__section-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+
+  color: var(--beeux-yellow);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dashboard__section-title {
+  margin: 0;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 28px;
+}
+
+.dashboard__section-description {
+  max-width: 680px;
+  margin: 10px 0 0;
+
+  color: var(--beeux-gray-600);
+  line-height: 1.6;
+}
+
+/* Contracts */
+
+.dashboard__contracts-list {
+  display: grid;
+  gap: 16px;
+}
+
+.dashboard__contract {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+
+  padding: 24px;
+
+  border-radius: 16px;
+  background-color: var(--beeux-white);
+}
+
+.dashboard__contract-title {
+  margin: 0 0 8px;
+
+  color: var(--beeux-navy);
+  font-size: 18px;
+}
+
+.dashboard__contract-status {
+  margin: 0;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+}
+
+.dashboard__contract-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+}
+
+.dashboard__contract-button {
+  padding: 12px 18px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background-color: var(--beeux-navy);
+  color: var(--beeux-white);
+
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Legal profile */
+
+.dashboard__legal {
+  padding: 32px;
+
+  border-radius: 20px;
+  background-color: var(--beeux-white);
+}
+
+.dashboard__verification {
+  flex-shrink: 0;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashboard__verification--unverified {
+  background-color: #fff4d6;
+  color: #805d00;
+}
+
+.dashboard__verification--pending {
+  background-color: #e8f1ff;
+  color: #24589b;
+}
+
+.dashboard__verification--verified {
+  background-color: #e3f7ea;
+  color: #23683d;
+}
+
+.dashboard__verification--rejected {
+  background-color: #fde8e8;
+  color: #9a3030;
+}
+
+.dashboard__legal-form {
+  margin-top: 32px;
+}
+
+.dashboard__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.dashboard__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard__field--full {
+  grid-column: 1 / -1;
+}
+
+.dashboard__field span {
+  color: var(--beeux-navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashboard__field input,
+.dashboard__field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+
+  border: 1px solid #d8dde5;
+  border-radius: 10px;
+
+  background-color: var(--beeux-white);
+  color: var(--beeux-navy);
+
+  font: inherit;
+}
+
+.dashboard__field input:focus,
+.dashboard__field select:focus {
+  border-color: var(--beeux-yellow);
+  outline: none;
+}
+
+.dashboard__address {
+  margin-top: 32px;
+  padding-top: 28px;
+
+  border-top: 1px solid #e6e8ec;
+}
+
+.dashboard__form-title {
+  margin: 0 0 20px;
+
+  color: var(--beeux-navy);
+  font-size: 20px;
+}
+
+.dashboard__verification-note {
+  margin-top: 28px;
+  padding: 18px;
+
+  border-radius: 12px;
+
+  background-color: var(--beeux-gray-100);
+}
+
+.dashboard__verification-note strong {
+  color: var(--beeux-navy);
+}
+
+.dashboard__verification-note p {
+  margin: 8px 0 0;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dashboard__form-message {
+  margin: 20px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashboard__form-message--success {
+  color: #23683d;
+}
+
+.dashboard__form-message--error {
+  color: #9a3030;
+}
+
+.dashboard__save-button {
+  margin-top: 24px;
+  padding: 14px 24px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard__save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+
 @media screen and (max-width: 800px) {
+  .dashboard {
+    padding: 56px 0 72px;
+  }
+
   .dashboard__grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard__contract {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard__contract-meta {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard__section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard__legal {
+    padding: 24px;
+  }
+
+  .dashboard__form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard__field--full {
+    grid-column: auto;
   }
 }

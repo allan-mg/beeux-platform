@@ -8,7 +8,7 @@ import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Checkout from "./pages/Checkout/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess/CheckoutSuccess";
-
+import ContractDetails from "./pages/ContractDetails/ContractDetails";
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
@@ -79,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CheckoutSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:orderId"
+          element={
+            <ProtectedRoute>
+              <ContractDetails />
             </ProtectedRoute>
           }
         />

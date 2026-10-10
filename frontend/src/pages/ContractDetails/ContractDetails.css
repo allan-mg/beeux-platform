@@ -1,0 +1,90 @@
+.contract-details {
+  min-height: 70vh;
+  padding: 80px 0 96px;
+
+  background-color: var(--beeux-gray-100);
+}
+
+.contract-details__container {
+  width: min(100% - 32px, 760px);
+  margin: 0 auto;
+}
+
+.contract-details__eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+
+  color: var(--beeux-yellow);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contract-details__title {
+  margin: 0 0 18px;
+
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: clamp(40px, 6vw, 58px);
+  line-height: 1;
+}
+
+.contract-details__description {
+  margin: 0 0 32px;
+
+  color: var(--beeux-gray-600);
+  line-height: 1.6;
+}
+
+.contract-details__card {
+  padding: 32px;
+
+  border-radius: 16px;
+  background-color: var(--beeux-white);
+}
+
+.contract-details__row {
+  padding: 14px 0;
+
+  border-bottom: 1px solid var(--beeux-gray-300);
+
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.contract-details__row span {
+  color: var(--beeux-gray-600);
+}
+
+.contract-details__notice {
+  margin: 24px 0;
+  padding: 16px;
+
+  border-left: 4px solid var(--beeux-yellow);
+  border-radius: 8px;
+
+  background-color: #fff9db;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.contract-details__button {
+  width: 100%;
+  min-height: 50px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-weight: 700;
+}
+
+.contract-details__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

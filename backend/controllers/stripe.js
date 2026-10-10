@@ -36,7 +36,7 @@ const handleStripeWebhook = async (req, res) => {
             stripePaymentIntentId: session.payment_intent || null,
           },
           {
-            new: true,
+            returnDocument: "after",
           },
         );
 
@@ -51,11 +51,11 @@ const handleStripeWebhook = async (req, res) => {
                 order: order._id,
                 service: order.service,
                 serviceName: order.serviceName,
-                status: "pending",
+                status: "awaiting_legal_data",
               },
             },
             {
-              new: true,
+              returnDocument: "after",
               upsert: true,
             },
           );
