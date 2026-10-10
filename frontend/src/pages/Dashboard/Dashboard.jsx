@@ -1,15 +1,21 @@
 import { useContext, useEffect, useState } from "react";
+
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
+
 import { getMyContracts } from "../../api/contractsApi";
+import { getMyProjects } from "../../api/projectsApi";
 import { updateLegalProfile } from "../../api/authApi";
+
 import "./Dashboard.css";
 
 function Dashboard() {
   const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
 
   const [contracts, setContracts] = useState([]);
+  const [projects, setProjects] = useState([]);
+
   const [isSavingLegalProfile, setIsSavingLegalProfile] = useState(false);
   const [legalProfileMessage, setLegalProfileMessage] = useState("");
   const [legalProfileError, setLegalProfileError] = useState("");
@@ -47,10 +53,25 @@ function Dashboard() {
       .catch((error) => {
         console.error("Error loading contracts:", error);
       });
+
+    getMyProjects(token)
+      .then((data) => {
+        setProjects(data);
+      })
+      .catch((error) => {
+        console.error("Error loading projects:", error);
+      });
   }, []);
 
-  const pendingContracts = contracts.filter(
-    (contract) => contract.status === "pending" || contract.status === "sent",
+  const pendingContracts = contracts.filter((contract) =>
+    ["awaiting_legal_data", "awaiting_verification", "ready_to_sign"].includes(
+      contract.status,
+    ),
+  );
+
+  const activeProjects = projects.filter(
+    (project) =>
+      project.status !== "delivered" && project.status !== "cancelled",
   );
 
   const verificationStatus =
@@ -136,7 +157,7 @@ function Dashboard() {
           <div className="dashboard__grid">
             <article className="dashboard__card">
               <span>Proyectos activos</span>
-              <strong>0</strong>
+              <strong>{activeProjects.length}</strong>
             </article>
 
             <article className="dashboard__card">
@@ -191,6 +212,57 @@ function Dashboard() {
                         }}
                       >
                         Ver contrato
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeProjects.length > 0 && (
+            <section className="dashboard__contracts">
+              <div className="dashboard__section-header">
+                <div>
+                  <span className="dashboard__section-eyebrow">Proyectos</span>
+
+                  <h2 className="dashboard__section-title">
+                    Proyectos activos
+                  </h2>
+                </div>
+              </div>
+
+              <div className="dashboard__contracts-list">
+                {activeProjects.map((project) => (
+                  <article className="dashboard__contract" key={project._id}>
+                    <div>
+                      <h3 className="dashboard__contract-title">
+                        {project.serviceName}
+                      </h3>
+
+                      <p className="dashboard__contract-status">
+                        Estado: {project.status}
+                      </p>
+                    </div>
+
+                    <div className="dashboard__contract-meta">
+                      <span>Progreso: {project.progress}%</span>
+
+                      <span>
+                        Creado:{" "}
+                        {new Date(project.createdAt).toLocaleDateString(
+                          "es-MX",
+                        )}
+                      </span>
+
+                      <button
+                        className="dashboard__contract-button"
+                        type="button"
+                        onClick={() => {
+                          window.location.href = `/projects/${project._id}`;
+                        }}
+                      >
+                        Ver proyecto
                       </button>
                     </div>
                   </article>

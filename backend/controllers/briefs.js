@@ -1,5 +1,6 @@
 const Brief = require("../models/brief");
 const briefTemplates = require("../config/briefTemplates");
+const { createProjectFromBrief } = require("../utils/projectFlow");
 
 const getBriefByOrder = async (req, res, next) => {
   try {
@@ -87,9 +88,16 @@ const updateBriefByOrder = async (req, res, next) => {
 
     await brief.save();
 
+    let project = null;
+
+    if (completed) {
+      project = await createProjectFromBrief(brief);
+    }
+
     res.send({
       brief,
       template,
+      project,
     });
   } catch (error) {
     next(error);

@@ -9,14 +9,17 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Checkout from "./pages/Checkout/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess/CheckoutSuccess";
 import ContractDetails from "./pages/ContractDetails/ContractDetails";
+import BriefDetails from "./pages/BriefDetails/BriefDetails";
+import ProjectDetails from "./pages/ProjectDetails/ProjectDetails";
+
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
-import BriefDetails from "./pages/BriefDetails/BriefDetails";
 
 import { getCurrentUser } from "./api/authApi";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+
   const [isAuthLoading, setIsAuthLoading] = useState(() =>
     Boolean(localStorage.getItem("jwt")),
   );
@@ -75,6 +78,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/checkout/success"
           element={
@@ -83,6 +87,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/contracts/:orderId"
           element={
@@ -91,11 +96,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/briefs/:orderId"
           element={
             <ProtectedRoute>
               <BriefDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/projects/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectDetails />
             </ProtectedRoute>
           }
         />
