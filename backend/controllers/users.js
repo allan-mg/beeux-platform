@@ -5,6 +5,7 @@ const User = require("../models/user");
 
 const {
   moveContractsToAwaitingVerification,
+  moveContractsToReadyToSign,
 } = require("../utils/contractFlow");
 
 const createUser = (req, res, next) => {
@@ -215,9 +216,48 @@ const updateLegalProfile = async (req, res, next) => {
   }
 };
 
+const verifyCurrentUserForDevelopment = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!isLegalProfileComplete(user.legalProfile)) {
+      const error = new Error(
+        "Legal profile must be complete before verification",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.identityVerification.status = "verified";
+    user.identityVerification.verificationType =
+      user.legalProfile.entityType === "business" ? "business" : "identity";
+    user.identityVerification.provider = "development";
+    user.identityVerification.referenceId = `dev-${user._id}-${Date.now()}`;
+    user.identityVerification.verifiedAt = new Date();
+
+    await user.save();
+
+    await moveContractsToReadyToSign(user._id);
+
+    res.send({
+      message: "Development verification completed",
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   login,
   getCurrentUser,
   updateLegalProfile,
+  verifyCurrentUserForDevelopment,
 };

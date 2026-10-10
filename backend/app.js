@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const routes = require("./routes");
 const notFound = require("./middlewares/not-found");
@@ -22,6 +23,10 @@ app.post(
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(
+  "/generated/contracts",
+  express.static(path.join(__dirname, "generated", "contracts")),
+);
 
 app.use(routes);
 

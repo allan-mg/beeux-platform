@@ -88,3 +88,110 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.contract-details__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.contract-details__button--secondary {
+  background-color: var(--beeux-navy);
+  color: var(--beeux-white);
+}
+
+.contract-details__error {
+  margin: 16px 0 0;
+
+  color: #9a3030;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.contract-details__signature {
+  margin-top: 24px;
+  padding: 24px;
+
+  border: 1px solid #e2e6ea;
+  border-radius: 12px;
+
+  background-color: var(--beeux-gray-100);
+}
+
+.contract-details__signature-title {
+  margin: 0 0 20px;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 20px;
+}
+
+.contract-details__signature-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contract-details__signature-field span {
+  color: var(--beeux-navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.contract-details__signature-field input {
+  min-height: 48px;
+  padding: 12px 14px;
+
+  border: 1px solid #d8dde5;
+  border-radius: 10px;
+
+  background-color: var(--beeux-white);
+  color: var(--beeux-navy);
+
+  font: inherit;
+}
+
+.contract-details__signature-field input:focus {
+  border-color: var(--beeux-yellow);
+  outline: none;
+}
+
+.contract-details__acceptance {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin-top: 20px;
+
+  color: var(--beeux-gray-600);
+  font-size: 14px;
+  line-height: 1.5;
+
+  cursor: pointer;
+}
+
+.contract-details__acceptance input {
+  margin-top: 3px;
+}
+
+.contract-details__success {
+  margin: 16px 0 0;
+
+  color: #23683d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.contract-details__signed-notice {
+  margin-top: 24px;
+  padding: 16px;
+
+  border-radius: 10px;
+
+  background-color: #e3f7ea;
+  color: #23683d;
+
+  font-weight: 700;
+}

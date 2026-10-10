@@ -11,6 +11,7 @@ import CheckoutSuccess from "./pages/CheckoutSuccess/CheckoutSuccess";
 import ContractDetails from "./pages/ContractDetails/ContractDetails";
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import BriefDetails from "./pages/BriefDetails/BriefDetails";
 
 import { getCurrentUser } from "./api/authApi";
 
@@ -87,6 +88,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ContractDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/briefs/:orderId"
+          element={
+            <ProtectedRoute>
+              <BriefDetails />
             </ProtectedRoute>
           }
         />
