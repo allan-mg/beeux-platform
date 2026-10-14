@@ -29,3 +29,38 @@ export const getProjectById = ({ token, projectId }) =>
 
     return data;
   });
+
+export const updateProjectStatus = ({ token, projectId, status }) =>
+  fetch(`${BASE_URL}/admin/projects/${projectId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      status,
+    }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
+
+export const getAllProjects = (token) =>
+  fetch(`${BASE_URL}/admin/projects`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

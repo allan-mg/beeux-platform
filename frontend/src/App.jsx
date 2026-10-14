@@ -11,6 +11,8 @@ import CheckoutSuccess from "./pages/CheckoutSuccess/CheckoutSuccess";
 import ContractDetails from "./pages/ContractDetails/ContractDetails";
 import BriefDetails from "./pages/BriefDetails/BriefDetails";
 import ProjectDetails from "./pages/ProjectDetails/ProjectDetails";
+import AdminRoute from "./components/AdminRoute/AdminRoute";
+import AdminProjects from "./pages/AdminProjects/AdminProjects";
 
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
@@ -112,6 +114,15 @@ function App() {
             <ProtectedRoute>
               <ProjectDetails />
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/projects"
+          element={
+            <AdminRoute>
+              <AdminProjects />
+            </AdminRoute>
           }
         />
       </Routes>
