@@ -254,10 +254,27 @@ const verifyCurrentUserForDevelopment = async (req, res, next) => {
   }
 };
 
+const getTeamMembers = async (req, res, next) => {
+  try {
+    const users = await User.find({
+      role: {
+        $in: ["employee", "admin"],
+      },
+    })
+      .select("name email role")
+      .sort({ name: 1 });
+
+    res.send(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   login,
   getCurrentUser,
+  getTeamMembers,
   updateLegalProfile,
   verifyCurrentUserForDevelopment,
 };

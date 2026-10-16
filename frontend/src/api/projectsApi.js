@@ -64,3 +64,23 @@ export const getAllProjects = (token) =>
 
     return data;
   });
+
+export const updateProjectAssignee = ({ token, projectId, assignedTo }) =>
+  fetch(`${BASE_URL}/admin/projects/${projectId}/assignee`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      assignedTo,
+    }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

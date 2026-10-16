@@ -185,3 +185,279 @@
     align-items: stretch;
   }
 }
+
+.admin-projects__success {
+  margin-bottom: 20px;
+
+  color: #23683d;
+  font-weight: 700;
+}
+
+.admin-projects__assignment {
+  margin-top: 28px;
+  padding-top: 24px;
+
+  border-top: 1px solid #e4e7ec;
+}
+
+.admin-projects__assignment h3 {
+  margin: 0 0 16px;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 20px;
+}
+
+.admin-projects__assignment-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.admin-projects__assignment-controls label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-projects__assignment-controls span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.admin-projects__assignment-controls select {
+  min-height: 46px;
+  padding: 10px 12px;
+
+  border: 1px solid #d7dce2;
+  border-radius: 10px;
+
+  background-color: #ffffff;
+  color: var(--beeux-navy);
+
+  font: inherit;
+}
+
+.admin-projects__assignment-controls button {
+  min-height: 46px;
+  padding: 11px 20px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.admin-projects__tasks-section {
+  margin-top: 32px;
+  padding-top: 28px;
+
+  border-top: 1px solid #e4e7ec;
+}
+
+.admin-projects__tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.admin-projects__tasks-header span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.admin-projects__tasks-header h3 {
+  margin: 4px 0 0;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 22px;
+}
+
+.admin-projects__tasks-header strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+}
+
+.admin-projects__tasks-list {
+  display: grid;
+  gap: 14px;
+
+  margin-bottom: 26px;
+}
+
+.admin-projects__task {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 24px;
+
+  padding: 20px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+
+  background-color: #fafbfc;
+}
+
+.admin-projects__task h4 {
+  margin: 0 0 8px;
+
+  color: var(--beeux-navy);
+  font-size: 18px;
+}
+
+.admin-projects__task p {
+  margin: 0;
+
+  color: #667085;
+  line-height: 1.5;
+}
+
+.admin-projects__task-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  color: #667085;
+  font-size: 13px;
+}
+
+.admin-projects__task-meta strong {
+  color: var(--beeux-navy);
+}
+
+.admin-projects__task-form {
+  padding: 22px;
+
+  border-radius: 14px;
+
+  background-color: #f8f9fb;
+}
+
+.admin-projects__task-form h3 {
+  margin: 0 0 18px;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 20px;
+}
+
+.admin-projects__task-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-projects__task-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-projects__task-form-grid span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.admin-projects__task-form-grid input,
+.admin-projects__task-form-grid select,
+.admin-projects__task-form-grid textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+
+  border: 1px solid #d7dce2;
+  border-radius: 10px;
+
+  background-color: #ffffff;
+  color: var(--beeux-navy);
+
+  font: inherit;
+}
+
+.admin-projects__task-form-grid textarea {
+  min-height: 110px;
+
+  resize: vertical;
+}
+
+.admin-projects__task-description {
+  grid-column: 1 / -1;
+}
+
+.admin-projects__visibility {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 16px;
+
+  color: #667085;
+  font-size: 14px;
+}
+
+.admin-projects__visibility input {
+  width: auto;
+}
+
+.admin-projects__create-task {
+  min-height: 46px;
+  margin-top: 18px;
+  padding: 11px 20px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background-color: var(--beeux-navy);
+  color: #ffffff;
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.admin-projects__empty {
+  margin: 0 0 20px;
+
+  color: #667085;
+}
+
+@media screen and (max-width: 800px) {
+  .admin-projects__assignment-controls,
+  .admin-projects__task {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-projects__assignment-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-projects__task-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-projects__task-description {
+    grid-column: auto;
+  }
+}

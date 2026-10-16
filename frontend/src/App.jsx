@@ -13,7 +13,8 @@ import BriefDetails from "./pages/BriefDetails/BriefDetails";
 import ProjectDetails from "./pages/ProjectDetails/ProjectDetails";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
 import AdminProjects from "./pages/AdminProjects/AdminProjects";
-
+import TeamRoute from "./components/TeamRoute/TeamRoute";
+import TeamDashboard from "./pages/TeamDashboard/TeamDashboard";
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
@@ -123,6 +124,15 @@ function App() {
             <AdminRoute>
               <AdminProjects />
             </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/team/dashboard"
+          element={
+            <TeamRoute>
+              <TeamDashboard />
+            </TeamRoute>
           }
         />
       </Routes>

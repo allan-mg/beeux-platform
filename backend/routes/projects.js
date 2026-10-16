@@ -5,6 +5,7 @@ const {
   getProjectById,
   getAllProjects,
   updateProjectStatus,
+  updateProjectAssignee,
 } = require("../controllers/projects");
 
 const auth = require("../middlewares/auth");
@@ -21,6 +22,13 @@ router.patch(
   auth,
   admin,
   updateProjectStatus,
+);
+
+router.patch(
+  "/admin/projects/:projectId/assignee",
+  auth,
+  admin,
+  updateProjectAssignee,
 );
 
 module.exports = router;

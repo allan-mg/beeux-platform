@@ -41,6 +41,17 @@ function Login() {
       })
       .then((user) => {
         setCurrentUser(user);
+
+        if (user.role === "admin") {
+          navigate("/admin/projects");
+          return;
+        }
+
+        if (user.role === "employee") {
+          navigate("/team/dashboard");
+          return;
+        }
+
         navigate("/dashboard");
       })
       .catch((error) => {

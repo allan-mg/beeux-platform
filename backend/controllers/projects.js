@@ -1,4 +1,5 @@
 const Project = require("../models/project");
+const User = require("../models/user");
 
 const projectProgressByStatus = {
   brief_received: 10,
@@ -109,6 +110,7 @@ const getAllProjects = async (req, res, next) => {
       .populate("order")
       .populate("contract")
       .populate("brief")
+      .populate("assignedTo", "name email role")
       .sort({ createdAt: -1 });
 
     res.send(projects);
@@ -117,9 +119,59 @@ const getAllProjects = async (req, res, next) => {
   }
 };
 
+const updateProjectAssignee = async (req, res, next) => {
+  try {
+    const { assignedTo } = req.body;
+
+    const project = await Project.findById(req.params.projectId);
+
+    if (!project) {
+      const error = new Error("Project not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (assignedTo) {
+      const user = await User.findById(assignedTo);
+
+      if (!user) {
+        const error = new Error("Assigned user not found");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      if (!["employee", "admin"].includes(user.role)) {
+        const error = new Error(
+          "Project can only be assigned to an employee or admin",
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+
+      project.assignedTo = user._id;
+    } else {
+      project.assignedTo = null;
+    }
+
+    await project.save();
+
+    const updatedProject = await Project.findById(project._id)
+      .populate("user", "name email")
+      .populate("assignedTo", "name email role")
+      .populate("order")
+      .populate("contract")
+      .populate("brief");
+
+    res.send(updatedProject);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMyProjects,
   getProjectById,
-  updateProjectStatus,
   getAllProjects,
+  updateProjectStatus,
+  updateProjectAssignee,
 };
