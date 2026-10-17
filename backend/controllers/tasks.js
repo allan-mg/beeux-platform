@@ -1,6 +1,7 @@
 const Task = require("../models/task");
 const Project = require("../models/project");
 const User = require("../models/user");
+const TaskActivity = require("../models/taskActivity");
 
 const getProjectTasks = async (req, res, next) => {
   try {
@@ -102,6 +103,7 @@ const updateTask = async (req, res, next) => {
       dueDate,
       clientVisible,
       order,
+      reviewMessage,
     } = req.body;
 
     const task = await Task.findById(req.params.taskId);
@@ -111,6 +113,14 @@ const updateTask = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+
+    if (task.status === "cancelled") {
+      const error = new Error("Cancelled tasks cannot be modified");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const previousStatus = task.status;
 
     if (assignedTo !== undefined && assignedTo !== null) {
       const assignedUser = await User.findById(assignedTo);
@@ -172,9 +182,56 @@ const updateTask = async (req, res, next) => {
       } else {
         task.completedAt = null;
       }
+
+      if (status === "cancelled") {
+        task.cancelledAt = new Date();
+      } else {
+        task.cancelledAt = null;
+      }
+    }
+
+    if (status === "pending" && previousStatus === "review") {
+      task.status = "pending";
     }
 
     await task.save();
+
+    if (status !== undefined && status !== previousStatus) {
+      let activityType = "status_change";
+      let activityMessage = "";
+
+      if (status === "review") {
+        activityType = "review_requested";
+        activityMessage = "La tarea fue enviada a revisión.";
+      }
+
+      if (previousStatus === "review" && status === "pending") {
+        activityType = "changes_requested";
+
+        activityMessage =
+          reviewMessage?.trim() ||
+          "El administrador solicitó cambios en la tarea.";
+      }
+
+      if (status === "completed") {
+        activityType = "approved";
+        activityMessage = "La tarea fue aprobada y marcada como completada.";
+      }
+
+      if (status === "cancelled") {
+        activityMessage = "La tarea fue cancelada.";
+      }
+
+      await TaskActivity.create({
+        task: task._id,
+        project: task.project,
+        user: req.user._id,
+        type: activityType,
+        fromStatus: previousStatus,
+        toStatus: status,
+        message: activityMessage,
+      });
+    }
 
     const updatedTask = await Task.findById(task._id)
       .populate("assignedTo", "name email role")
@@ -205,7 +262,7 @@ const updateMyTaskStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
 
-    const allowedStatuses = ["pending", "in_progress", "review", "completed"];
+    const allowedStatuses = ["pending", "in_progress", "review"];
 
     if (!allowedStatuses.includes(status)) {
       const error = new Error("Invalid task status");
@@ -224,6 +281,14 @@ const updateMyTaskStatus = async (req, res, next) => {
       throw error;
     }
 
+    if (task.status === "cancelled") {
+      const error = new Error("Cancelled tasks cannot be modified");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const previousStatus = task.status;
+
     task.status = status;
 
     if (status === "completed") {
@@ -233,6 +298,18 @@ const updateMyTaskStatus = async (req, res, next) => {
     }
 
     await task.save();
+
+    if (status !== previousStatus) {
+      await TaskActivity.create({
+        task: task._id,
+        project: task.project,
+        user: req.user._id,
+        type: status === "review" ? "review_requested" : "status_change",
+        fromStatus: previousStatus,
+        toStatus: status,
+        message: status === "review" ? "La tarea fue enviada a revisión." : "",
+      });
+    }
 
     const updatedTask = await Task.findById(task._id)
       .populate("project", "serviceName serviceSlug status progress")
@@ -244,10 +321,125 @@ const updateMyTaskStatus = async (req, res, next) => {
   }
 };
 
+const getTaskActivity = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+
+    if (!task) {
+      const error = new Error("Task not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const activities = await TaskActivity.find({
+      task: task._id,
+    })
+      .populate("user", "name email role")
+      .sort({ createdAt: 1 });
+
+    res.send(activities);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addTaskComment = async (req, res, next) => {
+  try {
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      const error = new Error("Comment message is required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const task = await Task.findById(req.params.taskId);
+
+    if (!task) {
+      const error = new Error("Task not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (task.status === "cancelled") {
+      const error = new Error("Cancelled tasks cannot receive comments");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const currentUser = await User.findById(req.user._id);
+
+    if (!currentUser) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (
+      currentUser.role === "employee" &&
+      String(task.assignedTo) !== String(currentUser._id)
+    ) {
+      const error = new Error("You can only comment on tasks assigned to you");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!["employee", "admin"].includes(currentUser.role)) {
+      const error = new Error("You are not allowed to comment on this task");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const activity = await TaskActivity.create({
+      task: task._id,
+      project: task.project,
+      user: currentUser._id,
+      type: "comment",
+      message: message.trim(),
+    });
+
+    const populatedActivity = await TaskActivity.findById(
+      activity._id,
+    ).populate("user", "name email role");
+
+    res.status(201).send(populatedActivity);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getMyTaskActivity = async (req, res, next) => {
+  try {
+    const task = await Task.findOne({
+      _id: req.params.taskId,
+      assignedTo: req.user._id,
+    });
+
+    if (!task) {
+      const error = new Error("Task not found or not assigned to you");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const activities = await TaskActivity.find({
+      task: task._id,
+    })
+      .populate("user", "name email role")
+      .sort({ createdAt: 1 });
+
+    res.send(activities);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMyTasks,
   getProjectTasks,
+  getTaskActivity,
+  getMyTaskActivity,
   createProjectTask,
   updateTask,
   updateMyTaskStatus,
+  addTaskComment,
 };

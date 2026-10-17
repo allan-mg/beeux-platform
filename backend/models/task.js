@@ -54,6 +54,11 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
 
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
+
     clientVisible: {
       type: Boolean,
       default: false,

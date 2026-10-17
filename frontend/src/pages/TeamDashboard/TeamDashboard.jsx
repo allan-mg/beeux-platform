@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 
-import { getMyTasks, updateMyTaskStatus } from "../../api/tasksApi";
+import {
+  getMyTasks,
+  updateMyTaskStatus,
+  addTaskComment,
+  getMyTaskActivity,
+} from "../../api/tasksApi";
 
 import "./TeamDashboard.css";
 
@@ -24,9 +29,25 @@ const priorityLabels = {
 
 function TeamDashboard() {
   const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const [isLoading, setIsLoading] = useState(() =>
+    Boolean(localStorage.getItem("jwt")),
+  );
+
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   const [savingTaskId, setSavingTaskId] = useState(null);
+
+  const [taskComments, setTaskComments] = useState({});
+
+  const [sendingCommentTaskId, setSendingCommentTaskId] = useState(null);
+
+  const [taskActivityById, setTaskActivityById] = useState({});
+
+  const [openActivityTaskId, setOpenActivityTaskId] = useState(null);
+
+  const [loadingActivityTaskId, setLoadingActivityTaskId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
@@ -40,12 +61,27 @@ function TeamDashboard() {
         setTasks(data);
       })
       .catch((error) => {
-        setErrorMessage(error);
+        setErrorMessage(error.message || "No se pudieron cargar las tareas.");
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, []);
+
+  const refreshTaskActivity = (taskId, token) => {
+    return getMyTaskActivity({
+      token,
+      taskId,
+    }).then((activities) => {
+      setTaskActivityById((currentActivity) => ({
+        ...currentActivity,
+
+        [taskId]: activities,
+      }));
+
+      return activities;
+    });
+  };
 
   const handleStatusChange = (taskId, status) => {
     const token = localStorage.getItem("jwt");
@@ -57,6 +93,7 @@ function TeamDashboard() {
 
     setSavingTaskId(taskId);
     setErrorMessage("");
+    setSuccessMessage("");
 
     updateMyTaskStatus({
       token,
@@ -69,12 +106,117 @@ function TeamDashboard() {
             task._id === updatedTask._id ? updatedTask : task,
           ),
         );
+
+        if (openActivityTaskId === taskId) {
+          return refreshTaskActivity(taskId, token).then(() => updatedTask);
+        }
+
+        setTaskActivityById((currentActivity) => {
+          const updatedActivity = {
+            ...currentActivity,
+          };
+
+          delete updatedActivity[taskId];
+
+          return updatedActivity;
+        });
+
+        return updatedTask;
+      })
+      .then(() => {
+        setSuccessMessage("El estado de la tarea se actualizó correctamente.");
       })
       .catch((error) => {
-        setErrorMessage(error);
+        setErrorMessage(
+          error.message || "No se pudo actualizar el estado de la tarea.",
+        );
       })
       .finally(() => {
         setSavingTaskId(null);
+      });
+  };
+
+  const handleTaskCommentChange = (taskId, value) => {
+    setTaskComments((currentComments) => ({
+      ...currentComments,
+
+      [taskId]: value,
+    }));
+  };
+
+  const handleAddTaskComment = (taskId) => {
+    const token = localStorage.getItem("jwt");
+
+    const message = taskComments[taskId]?.trim();
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    if (!message) {
+      setErrorMessage("Escribe un comentario antes de enviarlo.");
+      return;
+    }
+
+    setSendingCommentTaskId(taskId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    addTaskComment({
+      token,
+      taskId,
+      message,
+      mode: "team",
+    })
+      .then(() => {
+        setTaskComments((currentComments) => ({
+          ...currentComments,
+
+          [taskId]: "",
+        }));
+
+        return refreshTaskActivity(taskId, token);
+      })
+      .then(() => {
+        setSuccessMessage("Comentario agregado correctamente.");
+      })
+      .catch((error) => {
+        setErrorMessage(error.message || "No se pudo agregar el comentario.");
+      })
+      .finally(() => {
+        setSendingCommentTaskId(null);
+      });
+  };
+
+  const handleToggleTaskActivity = (taskId) => {
+    if (openActivityTaskId === taskId) {
+      setOpenActivityTaskId(null);
+      return;
+    }
+
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    setOpenActivityTaskId(taskId);
+
+    if (taskActivityById[taskId]) {
+      return;
+    }
+
+    setLoadingActivityTaskId(taskId);
+    setErrorMessage("");
+
+    refreshTaskActivity(taskId, token)
+      .catch((error) => {
+        setErrorMessage(error.message || "No se pudo cargar el historial.");
+      })
+      .finally(() => {
+        setLoadingActivityTaskId(null);
       });
   };
 
@@ -100,9 +242,14 @@ function TeamDashboard() {
             <p className="team-dashboard__error">{errorMessage}</p>
           )}
 
+          {successMessage && (
+            <p className="team-dashboard__success">{successMessage}</p>
+          )}
+
           <div className="team-dashboard__summary">
             <article>
               <span>Total</span>
+
               <strong>{tasks.length}</strong>
             </article>
 
@@ -177,7 +324,10 @@ function TeamDashboard() {
                         onChange={(event) =>
                           handleStatusChange(task._id, event.target.value)
                         }
-                        disabled={savingTaskId === task._id}
+                        disabled={
+                          savingTaskId === task._id ||
+                          task.status === "cancelled"
+                        }
                       >
                         <option value="pending">Pendiente</option>
 
@@ -185,7 +335,9 @@ function TeamDashboard() {
 
                         <option value="review">En revisión</option>
 
-                        <option value="completed">Completada</option>
+                        <option value="cancelled" disabled>
+                          Cancelada
+                        </option>
                       </select>
                     </label>
 
@@ -195,6 +347,99 @@ function TeamDashboard() {
                       </span>
                     )}
                   </div>
+
+                  <button
+                    type="button"
+                    className="team-dashboard__history-button"
+                    onClick={() => handleToggleTaskActivity(task._id)}
+                  >
+                    {openActivityTaskId === task._id
+                      ? "Ocultar historial"
+                      : "Ver historial"}
+                  </button>
+
+                  {task.status !== "cancelled" && (
+                    <div className="team-dashboard__comment-form">
+                      <label>
+                        <span>Comentario o avance</span>
+
+                        <textarea
+                          rows="3"
+                          value={taskComments[task._id] || ""}
+                          onChange={(event) =>
+                            handleTaskCommentChange(
+                              task._id,
+                              event.target.value,
+                            )
+                          }
+                          placeholder="Agrega una nota o avance sobre esta tarea..."
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddTaskComment(task._id)}
+                        disabled={sendingCommentTaskId === task._id}
+                      >
+                        {sendingCommentTaskId === task._id
+                          ? "Enviando..."
+                          : "Agregar comentario"}
+                      </button>
+                    </div>
+                  )}
+
+                  {openActivityTaskId === task._id && (
+                    <div className="team-dashboard__activity">
+                      <h3>Historial de actividad</h3>
+
+                      {loadingActivityTaskId === task._id ? (
+                        <p>Cargando historial...</p>
+                      ) : taskActivityById[task._id]?.length ? (
+                        <div className="team-dashboard__activity-list">
+                          {taskActivityById[task._id].map((activity) => (
+                            <div
+                              className="team-dashboard__activity-item"
+                              key={activity._id}
+                            >
+                              <strong>
+                                {activity.user?.name || "Usuario BeeUX"}
+                              </strong>
+
+                              <span>
+                                {activity.fromStatus && activity.toStatus
+                                  ? `${
+                                      statusLabels[activity.fromStatus] ||
+                                      activity.fromStatus
+                                    } → ${
+                                      statusLabels[activity.toStatus] ||
+                                      activity.toStatus
+                                    }`
+                                  : activity.type === "comment"
+                                    ? "Comentario"
+                                    : activity.type === "review_requested"
+                                      ? "Enviada a revisión"
+                                      : activity.type === "approved"
+                                        ? "Aprobada"
+                                        : activity.type}
+                              </span>
+
+                              {activity.message && <p>{activity.message}</p>}
+
+                              <small>
+                                {new Date(activity.createdAt).toLocaleString(
+                                  "es-MX",
+                                )}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p>
+                          Todavía no hay actividad registrada para esta tarea.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </article>
               ))
             )}

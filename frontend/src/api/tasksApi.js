@@ -85,3 +85,57 @@ export const updateTask = ({ token, taskId, updates }) =>
 
     return data;
   });
+
+export const getTaskActivity = ({ token, taskId }) =>
+  fetch(`http://localhost:3000/admin/tasks/${taskId}/activity`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+
+    return res.json().then((data) => {
+      throw new Error(
+        data.message || "No se pudo obtener el historial de la tarea",
+      );
+    });
+  });
+
+export const addTaskComment = ({ token, taskId, message, mode = "admin" }) =>
+  fetch(`http://localhost:3000/${mode}/tasks/${taskId}/comments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message,
+    }),
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+
+    return res.json().then((data) => {
+      throw new Error(data.message || "No se pudo agregar el comentario");
+    });
+  });
+
+export const getMyTaskActivity = ({ token, taskId }) =>
+  fetch(`http://localhost:3000/team/tasks/${taskId}/activity`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+
+    return res.json().then((data) => {
+      throw new Error(
+        data.message || "No se pudo obtener el historial de la tarea",
+      );
+    });
+  });
