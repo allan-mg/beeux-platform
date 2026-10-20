@@ -9,6 +9,8 @@ const {
   updateTask,
   updateMyTaskStatus,
   addTaskComment,
+  addMyTaskDeliverable,
+  getTaskDeliverables,
 } = require("../controllers/tasks");
 
 const auth = require("../middlewares/auth");
@@ -23,7 +25,28 @@ router.get("/admin/tasks/:taskId/activity", auth, admin, getTaskActivity);
 
 router.get("/team/tasks/:taskId/activity", auth, teamMember, getMyTaskActivity);
 
+router.get(
+  "/admin/tasks/:taskId/deliverables",
+  auth,
+  admin,
+  getTaskDeliverables,
+);
+
+router.get(
+  "/team/tasks/:taskId/deliverables",
+  auth,
+  teamMember,
+  getTaskDeliverables,
+);
+
 router.post("/admin/projects/:projectId/tasks", auth, admin, createProjectTask);
+
+router.post(
+  "/team/tasks/:taskId/deliverables",
+  auth,
+  teamMember,
+  addMyTaskDeliverable,
+);
 
 router.patch("/admin/tasks/:taskId", auth, admin, updateTask);
 

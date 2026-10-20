@@ -17,6 +17,7 @@ import {
   updateTask,
   getTaskActivity,
   addTaskComment,
+  getTaskDeliverables,
 } from "../../api/tasksApi";
 
 import "./AdminProjects.css";
@@ -43,6 +44,14 @@ const priorityLabels = {
   medium: "Media",
   high: "Alta",
   urgent: "Urgente",
+};
+
+const deliverableSourceLabels = {
+  upload: "Archivo",
+  canva: "Canva",
+  affinity: "Affinity",
+  drive: "Google Drive",
+  external: "Enlace externo",
 };
 
 const getAssigneeId = (assignedTo) => {
@@ -96,6 +105,13 @@ function AdminProjects() {
   const [requestChangesTaskId, setRequestChangesTaskId] = useState(null);
 
   const [reviewMessages, setReviewMessages] = useState({});
+
+  const [taskDeliverablesById, setTaskDeliverablesById] = useState({});
+
+  const [openDeliverablesTaskId, setOpenDeliverablesTaskId] = useState(null);
+
+  const [loadingDeliverablesTaskId, setLoadingDeliverablesTaskId] =
+    useState(null);
 
   const [approveTaskModal, setApproveTaskModal] = useState(null);
 
@@ -531,6 +547,49 @@ function AdminProjects() {
       })
       .finally(() => {
         setLoadingActivityTaskId(null);
+      });
+  };
+
+  const handleToggleTaskDeliverables = (taskId) => {
+    if (openDeliverablesTaskId === taskId) {
+      setOpenDeliverablesTaskId(null);
+      return;
+    }
+
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    setOpenDeliverablesTaskId(taskId);
+
+    if (taskDeliverablesById[taskId]) {
+      return;
+    }
+
+    setLoadingDeliverablesTaskId(taskId);
+    setErrorMessage("");
+
+    getTaskDeliverables({
+      token,
+      taskId,
+      mode: "admin",
+    })
+      .then((deliverables) => {
+        setTaskDeliverablesById((currentDeliverables) => ({
+          ...currentDeliverables,
+          [taskId]: deliverables,
+        }));
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message || "No se pudieron cargar los entregables.",
+        );
+      })
+      .finally(() => {
+        setLoadingDeliverablesTaskId(null);
       });
   };
 
@@ -1053,6 +1112,17 @@ function AdminProjects() {
 
                                       <button
                                         type="button"
+                                        onClick={() =>
+                                          handleToggleTaskDeliverables(task._id)
+                                        }
+                                      >
+                                        {openDeliverablesTaskId === task._id
+                                          ? "Ocultar entregables"
+                                          : "Ver entregables"}
+                                      </button>
+
+                                      <button
+                                        type="button"
                                         className="admin-projects__task-cancel"
                                         onClick={() =>
                                           handleCancelTask(
@@ -1071,6 +1141,76 @@ function AdminProjects() {
                                       </button>
                                     </div>
                                   </div>
+
+                                  {openDeliverablesTaskId === task._id && (
+                                    <div className="admin-projects__task-deliverables">
+                                      <h5>Entregables de la tarea</h5>
+
+                                      {loadingDeliverablesTaskId ===
+                                      task._id ? (
+                                        <p>Cargando entregables...</p>
+                                      ) : taskDeliverablesById[task._id]
+                                          ?.length ? (
+                                        <div className="admin-projects__deliverables-list">
+                                          {taskDeliverablesById[task._id].map(
+                                            (deliverable) => (
+                                              <div
+                                                className="admin-projects__deliverable-item"
+                                                key={deliverable._id}
+                                              >
+                                                <div className="admin-projects__deliverable-info">
+                                                  <strong>
+                                                    {deliverable.name}
+                                                  </strong>
+
+                                                  <span>
+                                                    {deliverableSourceLabels[
+                                                      deliverable.source
+                                                    ] || deliverable.source}
+                                                  </span>
+                                                </div>
+
+                                                <a
+                                                  href={deliverable.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                >
+                                                  {deliverable.source ===
+                                                  "canva"
+                                                    ? "Abrir en Canva"
+                                                    : deliverable.source ===
+                                                        "drive"
+                                                      ? "Abrir en Drive"
+                                                      : deliverable.source ===
+                                                          "affinity"
+                                                        ? "Abrir en Affinity"
+                                                        : deliverable.source ===
+                                                            "upload"
+                                                          ? "Abrir archivo"
+                                                          : "Abrir enlace"}
+                                                </a>
+
+                                                <small>
+                                                  Agregado por{" "}
+                                                  {deliverable.uploadedBy
+                                                    ?.name || "Usuario BeeUX"}
+                                                  {" · "}
+                                                  {new Date(
+                                                    deliverable.createdAt,
+                                                  ).toLocaleString("es-MX")}
+                                                </small>
+                                              </div>
+                                            ),
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <p>
+                                          Todavía no hay entregables para esta
+                                          tarea.
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
 
                                   {openActivityTaskId === task._id && (
                                     <div className="admin-projects__task-activity">

@@ -2,6 +2,7 @@ const Task = require("../models/task");
 const Project = require("../models/project");
 const User = require("../models/user");
 const TaskActivity = require("../models/taskActivity");
+const TaskDeliverable = require("../models/taskDeliverable");
 
 const getProjectTasks = async (req, res, next) => {
   try {
@@ -433,6 +434,118 @@ const getMyTaskActivity = async (req, res, next) => {
   }
 };
 
+const addMyTaskDeliverable = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const {
+      name,
+      url,
+      source = "external",
+      externalId = "",
+      externalUrl = "",
+      clientVisible = false,
+    } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).send({
+        message: "El entregable debe tener un nombre.",
+      });
+    }
+
+    if (!url?.trim()) {
+      return res.status(400).send({
+        message: "El entregable debe incluir una URL.",
+      });
+    }
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea.",
+      });
+    }
+
+    if (!task.assignedTo || task.assignedTo.toString() !== req.user._id) {
+      return res.status(403).send({
+        message: "No tienes permiso para agregar entregables a esta tarea.",
+      });
+    }
+
+    if (task.status === "cancelled") {
+      return res.status(400).send({
+        message: "No puedes agregar entregables a una tarea cancelada.",
+      });
+    }
+
+    const deliverable = await TaskDeliverable.create({
+      task: task._id,
+      project: task.project,
+      uploadedBy: req.user._id,
+      type: "link",
+      source,
+      name: name.trim(),
+      url: url.trim(),
+      externalId: externalId.trim(),
+      externalUrl: externalUrl.trim(),
+      clientVisible,
+      status: "submitted",
+    });
+
+    const populatedDeliverable = await TaskDeliverable.findById(
+      deliverable._id,
+    ).populate("uploadedBy", "name email");
+
+    return res.status(201).send(populatedDeliverable);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getTaskDeliverables = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea.",
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).send({
+        message: "No se encontró el usuario.",
+      });
+    }
+
+    const isAdmin = user.role === "admin";
+
+    const isAssignedEmployee =
+      task.assignedTo && task.assignedTo.toString() === req.user._id;
+
+    if (!isAdmin && !isAssignedEmployee) {
+      return res.status(403).send({
+        message:
+          "No tienes permiso para consultar los entregables de esta tarea.",
+      });
+    }
+
+    const deliverables = await TaskDeliverable.find({
+      task: taskId,
+    })
+      .populate("uploadedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    return res.send(deliverables);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getMyTasks,
   getProjectTasks,
@@ -442,4 +555,6 @@ module.exports = {
   updateTask,
   updateMyTaskStatus,
   addTaskComment,
+  addMyTaskDeliverable,
+  getTaskDeliverables,
 };

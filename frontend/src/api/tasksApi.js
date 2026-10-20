@@ -139,3 +139,36 @@ export const getMyTaskActivity = ({ token, taskId }) =>
       );
     });
   });
+
+export const getTaskDeliverables = ({ token, taskId, mode = "team" }) =>
+  fetch(`${BASE_URL}/${mode}/tasks/${taskId}/deliverables`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
+
+export const addMyTaskDeliverable = ({ token, taskId, deliverable }) =>
+  fetch(`${BASE_URL}/team/tasks/${taskId}/deliverables`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(deliverable),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
