@@ -59,6 +59,22 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
 
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    archivedAt: {
+      type: Date,
+      default: null,
+    },
+
+    archivedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     clientVisible: {
       type: Boolean,
       default: false,

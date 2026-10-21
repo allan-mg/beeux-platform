@@ -11,6 +11,7 @@ const {
   addTaskComment,
   addMyTaskDeliverable,
   getTaskDeliverables,
+  toggleTaskArchive,
 } = require("../controllers/tasks");
 
 const auth = require("../middlewares/auth");
@@ -48,6 +49,10 @@ router.post(
   addMyTaskDeliverable,
 );
 
+router.post("/admin/tasks/:taskId/comments", auth, admin, addTaskComment);
+
+router.post("/team/tasks/:taskId/comments", auth, teamMember, addTaskComment);
+
 router.patch("/admin/tasks/:taskId", auth, admin, updateTask);
 
 router.patch(
@@ -57,8 +62,6 @@ router.patch(
   updateMyTaskStatus,
 );
 
-router.post("/admin/tasks/:taskId/comments", auth, admin, addTaskComment);
-
-router.post("/team/tasks/:taskId/comments", auth, teamMember, addTaskComment);
+router.patch("/admin/tasks/:taskId/archive", auth, admin, toggleTaskArchive);
 
 module.exports = router;

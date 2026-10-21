@@ -546,6 +546,33 @@ const getTaskDeliverables = async (req, res, next) => {
   }
 };
 
+const toggleTaskArchive = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const { isArchived } = req.body;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea.",
+      });
+    }
+
+    task.isArchived = Boolean(isArchived);
+
+    task.archivedAt = task.isArchived ? new Date() : null;
+
+    task.archivedBy = task.isArchived ? req.user._id : null;
+
+    await task.save();
+
+    return res.send(task);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getMyTasks,
   getProjectTasks,
@@ -557,4 +584,5 @@ module.exports = {
   addTaskComment,
   addMyTaskDeliverable,
   getTaskDeliverables,
+  toggleTaskArchive,
 };

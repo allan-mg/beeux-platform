@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import Toast from "../../components/Toast/Toast";
 
 import {
   getAllProjects,
@@ -18,6 +19,7 @@ import {
   getTaskActivity,
   addTaskComment,
   getTaskDeliverables,
+  toggleTaskArchive,
 } from "../../api/tasksApi";
 
 import "./AdminProjects.css";
@@ -114,6 +116,40 @@ function AdminProjects() {
     useState(null);
 
   const [approveTaskModal, setApproveTaskModal] = useState(null);
+
+  const [archiveTaskModal, setArchiveTaskModal] = useState(null);
+
+  const [cancelTaskModal, setCancelTaskModal] = useState(null);
+
+  const [taskFilter, setTaskFilter] = useState("active");
+
+  useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setSuccessMessage("");
+    }, 3500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setErrorMessage("");
+    }, 6000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [errorMessage]);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
@@ -450,14 +486,6 @@ function AdminProjects() {
   };
 
   const handleCancelTask = (projectId, taskId) => {
-    const confirmed = window.confirm(
-      "¿Estás seguro de que deseas cancelar esta tarea?\n\nUna vez cancelada, ya no podrá editarse ni recuperarse desde el panel.",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     const token = localStorage.getItem("jwt");
 
     if (!token) {
@@ -502,6 +530,52 @@ function AdminProjects() {
       })
       .catch((error) => {
         setErrorMessage(error.message || "No se pudo cancelar la tarea.");
+      })
+      .finally(() => {
+        setUpdatingTaskId(null);
+      });
+  };
+
+  const handleToggleTaskArchive = (projectId, taskId, isArchived) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    setUpdatingTaskId(taskId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    toggleTaskArchive({
+      token,
+      taskId,
+      isArchived,
+    })
+      .then((updatedTask) => {
+        setTasksByProject((currentTasks) => ({
+          ...currentTasks,
+          [projectId]: currentTasks[projectId].map((task) =>
+            task._id === updatedTask._id
+              ? {
+                  ...task,
+                  ...updatedTask,
+                }
+              : task,
+          ),
+        }));
+
+        setSuccessMessage(
+          isArchived
+            ? "La tarea fue archivada correctamente."
+            : "La tarea fue restaurada correctamente.",
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message || "No se pudo actualizar el archivo de la tarea.",
+        );
       })
       .finally(() => {
         setUpdatingTaskId(null);
@@ -742,6 +816,22 @@ function AdminProjects() {
     <>
       <Header />
 
+      {errorMessage && (
+        <Toast
+          message={errorMessage}
+          type="error"
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
+      {!errorMessage && successMessage && (
+        <Toast
+          message={successMessage}
+          type="success"
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
       <main className="admin-projects">
         <div className="admin-projects__container">
           <span className="admin-projects__eyebrow">Administración BeeUX</span>
@@ -752,17 +842,65 @@ function AdminProjects() {
             Gestiona proyectos, responsables y tareas del equipo BeeUX.
           </p>
 
-          {errorMessage && (
-            <p className="admin-projects__error">{errorMessage}</p>
-          )}
-
-          {successMessage && (
-            <p className="admin-projects__success">{successMessage}</p>
-          )}
-
           <div className="admin-projects__list">
             {projects.map((project) => {
               const projectTasks = tasksByProject[project._id] || [];
+
+              const taskCounts = {
+                active: projectTasks.filter(
+                  (task) =>
+                    !task.isArchived &&
+                    ["pending", "in_progress"].includes(task.status),
+                ).length,
+
+                review: projectTasks.filter(
+                  (task) => !task.isArchived && task.status === "review",
+                ).length,
+
+                completed: projectTasks.filter(
+                  (task) => !task.isArchived && task.status === "completed",
+                ).length,
+
+                cancelled: projectTasks.filter(
+                  (task) => !task.isArchived && task.status === "cancelled",
+                ).length,
+
+                archived: projectTasks.filter((task) => task.isArchived).length,
+
+                all: projectTasks.filter((task) => !task.isArchived).length,
+              };
+
+              const filteredProjectTasks = projectTasks.filter((task) => {
+                if (taskFilter === "all") {
+                  return !task.isArchived;
+                }
+
+                if (taskFilter === "archived") {
+                  return task.isArchived;
+                }
+
+                if (task.isArchived) {
+                  return false;
+                }
+
+                if (taskFilter === "active") {
+                  return ["pending", "in_progress"].includes(task.status);
+                }
+
+                if (taskFilter === "review") {
+                  return task.status === "review";
+                }
+
+                if (taskFilter === "completed") {
+                  return task.status === "completed";
+                }
+
+                if (taskFilter === "cancelled") {
+                  return task.status === "cancelled";
+                }
+
+                return true;
+              });
 
               const taskForm = taskForms[project._id] || {
                 title: "",
@@ -899,16 +1037,70 @@ function AdminProjects() {
                         <h3>Tareas</h3>
                       </div>
 
-                      <strong>{projectTasks.length}</strong>
+                      <strong>{filteredProjectTasks.length}</strong>
                     </div>
 
-                    {projectTasks.length === 0 ? (
+                    <div className="admin-projects__task-filters">
+                      <button
+                        type="button"
+                        className={taskFilter === "active" ? "is-active" : ""}
+                        onClick={() => setTaskFilter("active")}
+                      >
+                        Activas ({taskCounts.active})
+                      </button>
+
+                      <button
+                        type="button"
+                        className={taskFilter === "review" ? "is-active" : ""}
+                        onClick={() => setTaskFilter("review")}
+                      >
+                        En revisión ({taskCounts.review})
+                      </button>
+
+                      <button
+                        type="button"
+                        className={
+                          taskFilter === "completed" ? "is-active" : ""
+                        }
+                        onClick={() => setTaskFilter("completed")}
+                      >
+                        Completadas ({taskCounts.completed})
+                      </button>
+
+                      <button
+                        type="button"
+                        className={
+                          taskFilter === "cancelled" ? "is-active" : ""
+                        }
+                        onClick={() => setTaskFilter("cancelled")}
+                      >
+                        Canceladas ({taskCounts.cancelled})
+                      </button>
+
+                      <button
+                        type="button"
+                        className={taskFilter === "archived" ? "is-active" : ""}
+                        onClick={() => setTaskFilter("archived")}
+                      >
+                        Archivadas ({taskCounts.archived})
+                      </button>
+
+                      <button
+                        type="button"
+                        className={taskFilter === "all" ? "is-active" : ""}
+                        onClick={() => setTaskFilter("all")}
+                      >
+                        Todas ({taskCounts.all})
+                      </button>
+                    </div>
+
+                    {filteredProjectTasks.length === 0 ? (
                       <p className="admin-projects__empty">
-                        Este proyecto todavía no tiene tareas.
+                        No hay tareas para este filtro.
                       </p>
                     ) : (
                       <div className="admin-projects__tasks-list">
-                        {projectTasks.map((task) => {
+                        {filteredProjectTasks.map((task) => {
                           const isEditing = editingTaskId === task._id;
 
                           const editForm = taskEditForms[task._id] || {
@@ -1121,14 +1313,51 @@ function AdminProjects() {
                                           : "Ver entregables"}
                                       </button>
 
+                                      {task.isArchived ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleToggleTaskArchive(
+                                              project._id,
+                                              task._id,
+                                              false,
+                                            )
+                                          }
+                                          disabled={updatingTaskId === task._id}
+                                        >
+                                          Desarchivar
+                                        </button>
+                                      ) : (
+                                        ["completed", "cancelled"].includes(
+                                          task.status,
+                                        ) && (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setArchiveTaskModal({
+                                                projectId: project._id,
+                                                taskId: task._id,
+                                                taskTitle: task.title,
+                                              })
+                                            }
+                                            disabled={
+                                              updatingTaskId === task._id
+                                            }
+                                          >
+                                            Archivar
+                                          </button>
+                                        )
+                                      )}
+
                                       <button
                                         type="button"
                                         className="admin-projects__task-cancel"
                                         onClick={() =>
-                                          handleCancelTask(
-                                            project._id,
-                                            task._id,
-                                          )
+                                          setCancelTaskModal({
+                                            projectId: project._id,
+                                            taskId: task._id,
+                                            taskTitle: task.title,
+                                          })
                                         }
                                         disabled={
                                           updatingTaskId === task._id ||
@@ -1631,6 +1860,104 @@ function AdminProjects() {
                 disabled={updatingTaskId === approveTaskModal.taskId}
               >
                 Aprobar tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {archiveTaskModal && (
+        <div className="admin-projects__modal-backdrop" role="presentation">
+          <div
+            className="admin-projects__modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="archive-task-title"
+          >
+            <span className="admin-projects__modal-eyebrow">
+              Confirmar archivo
+            </span>
+
+            <h2 id="archive-task-title">¿Archivar esta tarea?</h2>
+
+            <p>
+              La tarea <strong>{archiveTaskModal.taskTitle}</strong> dejará de
+              aparecer en las vistas operativas, pero conservará su historial y
+              sus entregables.
+            </p>
+
+            <div className="admin-projects__modal-actions">
+              <button
+                type="button"
+                className="admin-projects__modal-back"
+                onClick={() => setArchiveTaskModal(null)}
+                disabled={updatingTaskId === archiveTaskModal.taskId}
+              >
+                Volver
+              </button>
+
+              <button
+                type="button"
+                className="admin-projects__modal-confirm"
+                onClick={() => {
+                  const { projectId, taskId } = archiveTaskModal;
+
+                  setArchiveTaskModal(null);
+
+                  handleToggleTaskArchive(projectId, taskId, true);
+                }}
+                disabled={updatingTaskId === archiveTaskModal.taskId}
+              >
+                Archivar tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cancelTaskModal && (
+        <div className="admin-projects__modal-backdrop" role="presentation">
+          <div
+            className="admin-projects__modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-task-title"
+          >
+            <span className="admin-projects__modal-eyebrow">
+              Confirmar cancelación
+            </span>
+
+            <h2 id="cancel-task-title">¿Cancelar esta tarea?</h2>
+
+            <p>
+              La tarea <strong>{cancelTaskModal.taskTitle}</strong> se marcará
+              como cancelada. Su historial y sus entregables se conservarán para
+              consulta.
+            </p>
+
+            <div className="admin-projects__modal-actions">
+              <button
+                type="button"
+                className="admin-projects__modal-back"
+                onClick={() => setCancelTaskModal(null)}
+                disabled={updatingTaskId === cancelTaskModal.taskId}
+              >
+                Volver
+              </button>
+
+              <button
+                type="button"
+                className="admin-projects__modal-danger"
+                onClick={() => {
+                  const { projectId, taskId } = cancelTaskModal;
+
+                  setCancelTaskModal(null);
+
+                  handleCancelTask(projectId, taskId);
+                }}
+                disabled={updatingTaskId === cancelTaskModal.taskId}
+              >
+                Cancelar tarea
               </button>
             </div>
           </div>

@@ -172,3 +172,23 @@ export const addMyTaskDeliverable = ({ token, taskId, deliverable }) =>
 
     return data;
   });
+
+export const toggleTaskArchive = ({ token, taskId, isArchived }) =>
+  fetch(`${BASE_URL}/admin/tasks/${taskId}/archive`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      isArchived,
+    }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
