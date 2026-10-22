@@ -123,6 +123,14 @@ function AdminProjects() {
 
   const [taskFilter, setTaskFilter] = useState("active");
 
+  const [expandedProjects, setExpandedProjects] = useState({});
+
+  const [projectSearch, setProjectSearch] = useState("");
+
+  const [projectStatusFilter, setProjectStatusFilter] = useState("all");
+
+  const [projectAssigneeFilter, setProjectAssigneeFilter] = useState("all");
+
   useEffect(() => {
     if (!successMessage) {
       return;
@@ -216,6 +224,13 @@ function AdminProjects() {
         setIsLoading(false);
       });
   }, []);
+
+  const handleToggleProject = (projectId) => {
+    setExpandedProjects((currentProjects) => ({
+      ...currentProjects,
+      [projectId]: !currentProjects[projectId],
+    }));
+  };
 
   const handleStatusChange = (projectId, status) => {
     setStatusDrafts((currentStatuses) => ({
@@ -730,6 +745,92 @@ function AdminProjects() {
     return <main className="admin-projects">Cargando proyectos...</main>;
   }
 
+  const projectsByClient = projects.reduce((groups, project) => {
+    const clientId =
+      project.user?._id || project.user?.email || "unknown-client";
+
+    if (!groups[clientId]) {
+      groups[clientId] = {
+        client: {
+          _id: project.user?._id || "",
+          name: project.user?.name || "Cliente",
+          email: project.user?.email || "",
+        },
+        projects: [],
+      };
+    }
+
+    groups[clientId].projects.push(project);
+
+    return groups;
+  }, {});
+
+  const clientGroups = Object.values(projectsByClient);
+
+  const normalizedProjectSearch = projectSearch.trim().toLowerCase();
+
+  const filteredClientGroups = clientGroups
+    .map((group) => {
+      const clientMatches =
+        group.client.name?.toLowerCase().includes(normalizedProjectSearch) ||
+        group.client.email?.toLowerCase().includes(normalizedProjectSearch);
+
+      const matchingProjects = group.projects.filter((project) => {
+        const matchesSearch =
+          !normalizedProjectSearch ||
+          project.serviceName?.toLowerCase().includes(normalizedProjectSearch);
+
+        const matchesStatus =
+          projectStatusFilter === "all" ||
+          project.status === projectStatusFilter;
+
+        const projectAssigneeId =
+          project.assignedTo?._id || project.assignedTo || "";
+
+        const matchesAssignee =
+          projectAssigneeFilter === "all" ||
+          projectAssigneeId === projectAssigneeFilter;
+
+        return matchesSearch && matchesStatus && matchesAssignee;
+      });
+
+      if (clientMatches) {
+        const projectsMatchingFilters = group.projects.filter((project) => {
+          const matchesStatus =
+            projectStatusFilter === "all" ||
+            project.status === projectStatusFilter;
+
+          const projectAssigneeId =
+            project.assignedTo?._id || project.assignedTo || "";
+
+          const matchesAssignee =
+            projectAssigneeFilter === "all" ||
+            projectAssigneeId === projectAssigneeFilter;
+
+          return matchesStatus && matchesAssignee;
+        });
+
+        if (projectsMatchingFilters.length === 0) {
+          return null;
+        }
+
+        return {
+          ...group,
+          projects: projectsMatchingFilters,
+        };
+      }
+
+      if (matchingProjects.length > 0) {
+        return {
+          ...group,
+          projects: matchingProjects,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
   const handleReviewDecision = (projectId, taskId, decision) => {
     const token = localStorage.getItem("jwt");
 
@@ -842,721 +943,277 @@ function AdminProjects() {
             Gestiona proyectos, responsables y tareas del equipo BeeUX.
           </p>
 
+          <div className="admin-projects__search">
+            <label htmlFor="project-search">
+              Buscar cliente, email o servicio
+            </label>
+
+            <input
+              id="project-search"
+              type="search"
+              value={projectSearch}
+              onChange={(event) => setProjectSearch(event.target.value)}
+              placeholder="Ej. Cliente BeeUX, cliente@beeux.mx o UGC Ads"
+            />
+          </div>
+
+          <div className="admin-projects__project-filters">
+            <label>
+              <span>Estado del proyecto</span>
+
+              <select
+                value={projectStatusFilter}
+                onChange={(event) => setProjectStatusFilter(event.target.value)}
+              >
+                <option value="all">Todos los estados</option>
+                <option value="brief_received">Brief recibido</option>
+                <option value="planning">Planeación</option>
+                <option value="in_progress">En desarrollo</option>
+                <option value="review">Revisión</option>
+                <option value="delivered">Entregado</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Responsable</span>
+
+              <select
+                value={projectAssigneeFilter}
+                onChange={(event) =>
+                  setProjectAssigneeFilter(event.target.value)
+                }
+              >
+                <option value="all">Todos los responsables</option>
+
+                {teamMembers.map((member) => (
+                  <option key={member._id} value={member._id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {filteredClientGroups.length === 0 && (
+            <div className="admin-projects__empty-search">
+              No se encontraron clientes o proyectos con esa búsqueda.
+            </div>
+          )}
+
           <div className="admin-projects__list">
-            {projects.map((project) => {
-              const projectTasks = tasksByProject[project._id] || [];
-
-              const taskCounts = {
-                active: projectTasks.filter(
-                  (task) =>
-                    !task.isArchived &&
-                    ["pending", "in_progress"].includes(task.status),
-                ).length,
-
-                review: projectTasks.filter(
-                  (task) => !task.isArchived && task.status === "review",
-                ).length,
-
-                completed: projectTasks.filter(
-                  (task) => !task.isArchived && task.status === "completed",
-                ).length,
-
-                cancelled: projectTasks.filter(
-                  (task) => !task.isArchived && task.status === "cancelled",
-                ).length,
-
-                archived: projectTasks.filter((task) => task.isArchived).length,
-
-                all: projectTasks.filter((task) => !task.isArchived).length,
-              };
-
-              const filteredProjectTasks = projectTasks.filter((task) => {
-                if (taskFilter === "all") {
-                  return !task.isArchived;
-                }
-
-                if (taskFilter === "archived") {
-                  return task.isArchived;
-                }
-
-                if (task.isArchived) {
-                  return false;
-                }
-
-                if (taskFilter === "active") {
-                  return ["pending", "in_progress"].includes(task.status);
-                }
-
-                if (taskFilter === "review") {
-                  return task.status === "review";
-                }
-
-                if (taskFilter === "completed") {
-                  return task.status === "completed";
-                }
-
-                if (taskFilter === "cancelled") {
-                  return task.status === "cancelled";
-                }
-
-                return true;
-              });
-
-              const taskForm = taskForms[project._id] || {
-                title: "",
-                description: "",
-                assignedTo: "",
-                priority: "medium",
-                dueDate: "",
-                clientVisible: false,
-              };
-
-              return (
-                <article className="admin-projects__card" key={project._id}>
-                  <div className="admin-projects__main">
-                    <div>
-                      <span className="admin-projects__service-label">
-                        Servicio
-                      </span>
-
-                      <h2 className="admin-projects__service">
-                        {project.serviceName}
-                      </h2>
+            {filteredClientGroups.map(
+              ({ client, projects: clientProjects }) => (
+                <section
+                  className="admin-projects__client-group"
+                  key={client._id || client.email}
+                >
+                  <div className="admin-projects__client-group-header">
+                    <div className="admin-projects__client-group-avatar">
+                      {(client.name || "C").charAt(0).toUpperCase()}
                     </div>
 
-                    <div className="admin-projects__client">
+                    <div className="admin-projects__client-group-info">
                       <span>Cliente</span>
 
-                      <strong>{project.user?.name || "Cliente"}</strong>
+                      <h2>{client.name}</h2>
 
-                      <small>{project.user?.email || ""}</small>
+                      <small>{client.email}</small>
                     </div>
+
+                    <strong className="admin-projects__client-project-count">
+                      {clientProjects.length}{" "}
+                      {clientProjects.length === 1 ? "proyecto" : "proyectos"}
+                    </strong>
                   </div>
 
-                  <div className="admin-projects__progress-info">
-                    <span>
-                      Estado actual:{" "}
-                      <strong>
-                        {statusLabels[project.status] || project.status}
-                      </strong>
-                    </span>
+                  <div className="admin-projects__client-projects">
+                    {clientProjects.map((project) => {
+                      const projectTasks = tasksByProject[project._id] || [];
 
-                    <span>
-                      Progreso: <strong>{project.progress}%</strong>
-                    </span>
-                  </div>
+                      const taskCounts = {
+                        active: projectTasks.filter(
+                          (task) =>
+                            !task.isArchived &&
+                            ["pending", "in_progress"].includes(task.status),
+                        ).length,
 
-                  <div className="admin-projects__progress">
-                    <div
-                      className="admin-projects__progress-bar"
-                      style={{
-                        width: `${project.progress}%`,
-                      }}
-                    />
-                  </div>
+                        review: projectTasks.filter(
+                          (task) =>
+                            !task.isArchived && task.status === "review",
+                        ).length,
 
-                  <div className="admin-projects__controls">
-                    <label>
-                      <span>Nuevo estado</span>
+                        completed: projectTasks.filter(
+                          (task) =>
+                            !task.isArchived && task.status === "completed",
+                        ).length,
 
-                      <select
-                        value={statusDrafts[project._id] || project.status}
-                        onChange={(event) =>
-                          handleStatusChange(project._id, event.target.value)
-                        }
-                      >
-                        <option value="brief_received">Brief recibido</option>
+                        cancelled: projectTasks.filter(
+                          (task) =>
+                            !task.isArchived && task.status === "cancelled",
+                        ).length,
 
-                        <option value="planning">Planeación</option>
+                        archived: projectTasks.filter((task) => task.isArchived)
+                          .length,
 
-                        <option value="in_progress">En desarrollo</option>
+                        all: projectTasks.filter((task) => !task.isArchived)
+                          .length,
+                      };
 
-                        <option value="review">Revisión</option>
-
-                        <option value="delivered">Entregado</option>
-
-                        <option value="cancelled">Cancelado</option>
-                      </select>
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSaveStatus(project._id)}
-                      disabled={savingProjectId === project._id}
-                    >
-                      {savingProjectId === project._id
-                        ? "Guardando..."
-                        : "Guardar estado"}
-                    </button>
-                  </div>
-
-                  <section className="admin-projects__assignment">
-                    <h3>Responsable del proyecto</h3>
-
-                    <div className="admin-projects__assignment-controls">
-                      <label>
-                        <span>Responsable</span>
-
-                        <select
-                          value={assigneeDrafts[project._id] || ""}
-                          onChange={(event) =>
-                            handleAssigneeChange(
-                              project._id,
-                              event.target.value,
-                            )
+                      const filteredProjectTasks = projectTasks.filter(
+                        (task) => {
+                          if (taskFilter === "all") {
+                            return !task.isArchived;
                           }
+
+                          if (taskFilter === "archived") {
+                            return task.isArchived;
+                          }
+
+                          if (task.isArchived) {
+                            return false;
+                          }
+
+                          if (taskFilter === "active") {
+                            return ["pending", "in_progress"].includes(
+                              task.status,
+                            );
+                          }
+
+                          if (taskFilter === "review") {
+                            return task.status === "review";
+                          }
+
+                          if (taskFilter === "completed") {
+                            return task.status === "completed";
+                          }
+
+                          if (taskFilter === "cancelled") {
+                            return task.status === "cancelled";
+                          }
+
+                          return true;
+                        },
+                      );
+
+                      const taskForm = taskForms[project._id] || {
+                        title: "",
+                        description: "",
+                        assignedTo: "",
+                        priority: "medium",
+                        dueDate: "",
+                        clientVisible: false,
+                      };
+
+                      return (
+                        <article
+                          className="admin-projects__card"
+                          key={project._id}
                         >
-                          <option value="">Sin asignar</option>
+                          <div className="admin-projects__main">
+                            <div>
+                              <span className="admin-projects__service-label">
+                                Servicio
+                              </span>
 
-                          {teamMembers.map((member) => (
-                            <option key={member._id} value={member._id}>
-                              {member.name} —{" "}
-                              {member.role === "admin" ? "Admin" : "Empleado"}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                              <h2 className="admin-projects__service">
+                                {project.serviceName}
+                              </h2>
+                            </div>
+                          </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleSaveAssignee(project._id)}
-                        disabled={savingAssigneeProjectId === project._id}
-                      >
-                        {savingAssigneeProjectId === project._id
-                          ? "Asignando..."
-                          : "Guardar responsable"}
-                      </button>
-                    </div>
-                  </section>
+                          <div className="admin-projects__progress-info">
+                            <span>
+                              Estado actual:{" "}
+                              <strong>
+                                {statusLabels[project.status] || project.status}
+                              </strong>
+                            </span>
 
-                  <section className="admin-projects__tasks-section">
-                    <div className="admin-projects__tasks-header">
-                      <div>
-                        <span>Trabajo del equipo</span>
+                            <span>
+                              Progreso: <strong>{project.progress}%</strong>
+                            </span>
+                          </div>
 
-                        <h3>Tareas</h3>
-                      </div>
+                          <div className="admin-projects__progress">
+                            <div
+                              className="admin-projects__progress-bar"
+                              style={{
+                                width: `${project.progress}%`,
+                              }}
+                            />
+                          </div>
 
-                      <strong>{filteredProjectTasks.length}</strong>
-                    </div>
-
-                    <div className="admin-projects__task-filters">
-                      <button
-                        type="button"
-                        className={taskFilter === "active" ? "is-active" : ""}
-                        onClick={() => setTaskFilter("active")}
-                      >
-                        Activas ({taskCounts.active})
-                      </button>
-
-                      <button
-                        type="button"
-                        className={taskFilter === "review" ? "is-active" : ""}
-                        onClick={() => setTaskFilter("review")}
-                      >
-                        En revisión ({taskCounts.review})
-                      </button>
-
-                      <button
-                        type="button"
-                        className={
-                          taskFilter === "completed" ? "is-active" : ""
-                        }
-                        onClick={() => setTaskFilter("completed")}
-                      >
-                        Completadas ({taskCounts.completed})
-                      </button>
-
-                      <button
-                        type="button"
-                        className={
-                          taskFilter === "cancelled" ? "is-active" : ""
-                        }
-                        onClick={() => setTaskFilter("cancelled")}
-                      >
-                        Canceladas ({taskCounts.cancelled})
-                      </button>
-
-                      <button
-                        type="button"
-                        className={taskFilter === "archived" ? "is-active" : ""}
-                        onClick={() => setTaskFilter("archived")}
-                      >
-                        Archivadas ({taskCounts.archived})
-                      </button>
-
-                      <button
-                        type="button"
-                        className={taskFilter === "all" ? "is-active" : ""}
-                        onClick={() => setTaskFilter("all")}
-                      >
-                        Todas ({taskCounts.all})
-                      </button>
-                    </div>
-
-                    {filteredProjectTasks.length === 0 ? (
-                      <p className="admin-projects__empty">
-                        No hay tareas para este filtro.
-                      </p>
-                    ) : (
-                      <div className="admin-projects__tasks-list">
-                        {filteredProjectTasks.map((task) => {
-                          const isEditing = editingTaskId === task._id;
-
-                          const editForm = taskEditForms[task._id] || {
-                            title: task.title || "",
-
-                            description: task.description || "",
-
-                            assignedTo: getAssigneeId(task.assignedTo),
-
-                            priority: task.priority || "medium",
-
-                            dueDate: task.dueDate
-                              ? new Date(task.dueDate)
-                                  .toISOString()
-                                  .slice(0, 10)
-                              : "",
-
-                            clientVisible: Boolean(task.clientVisible),
-                          };
-
-                          return (
-                            <article
-                              className="admin-projects__task"
-                              key={task._id}
+                          <div className="admin-projects__project-toggle">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleProject(project._id)}
                             >
-                              {!isEditing ? (
-                                <>
-                                  <div>
-                                    <h4>{task.title}</h4>
+                              {expandedProjects[project._id]
+                                ? "Ocultar detalles"
+                                : "Ver proyecto"}
+                            </button>
+                          </div>
 
-                                    {task.description && (
-                                      <p>{task.description}</p>
-                                    )}
-                                  </div>
+                          {expandedProjects[project._id] && (
+                            <>
+                              <div className="admin-projects__controls">
+                                <label>
+                                  <span>Nuevo estado</span>
 
-                                  <div className="admin-projects__task-meta">
-                                    <span>
-                                      Estado:{" "}
-                                      <strong>
-                                        {taskStatusLabels[task.status] ||
-                                          task.status}
-                                      </strong>
-                                    </span>
+                                  <select
+                                    value={
+                                      statusDrafts[project._id] ||
+                                      project.status
+                                    }
+                                    onChange={(event) =>
+                                      handleStatusChange(
+                                        project._id,
+                                        event.target.value,
+                                      )
+                                    }
+                                  >
+                                    <option value="brief_received">
+                                      Brief recibido
+                                    </option>
 
-                                    <span>
-                                      Prioridad:{" "}
-                                      <strong>
-                                        {priorityLabels[task.priority] ||
-                                          task.priority}
-                                      </strong>
-                                    </span>
+                                    <option value="planning">Planeación</option>
 
-                                    <span>
-                                      Responsable:{" "}
-                                      <strong>
-                                        {task.assignedTo?.name || "Sin asignar"}
-                                      </strong>
-                                    </span>
+                                    <option value="in_progress">
+                                      En desarrollo
+                                    </option>
 
-                                    <span>
-                                      Fecha límite:{" "}
-                                      <strong>
-                                        {task.dueDate
-                                          ? new Date(
-                                              task.dueDate,
-                                            ).toLocaleDateString("es-MX")
-                                          : "Sin fecha"}
-                                      </strong>
-                                    </span>
+                                    <option value="review">Revisión</option>
 
-                                    <span>
-                                      Cliente:{" "}
-                                      <strong>
-                                        {task.clientVisible
-                                          ? "Visible"
-                                          : "Interna"}
-                                      </strong>
-                                    </span>
+                                    <option value="delivered">Entregado</option>
 
-                                    {task.status === "review" && (
-                                      <>
-                                        <div className="admin-projects__review-actions">
-                                          <button
-                                            type="button"
-                                            className="admin-projects__request-changes"
-                                            onClick={() => {
-                                              setRequestChangesTaskId(task._id);
+                                    <option value="cancelled">Cancelado</option>
+                                  </select>
+                                </label>
 
-                                              setErrorMessage("");
-                                              setSuccessMessage("");
-                                            }}
-                                            disabled={
-                                              updatingTaskId === task._id
-                                            }
-                                          >
-                                            Solicitar cambios
-                                          </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveStatus(project._id)}
+                                  disabled={savingProjectId === project._id}
+                                >
+                                  {savingProjectId === project._id
+                                    ? "Guardando..."
+                                    : "Guardar estado"}
+                                </button>
+                              </div>
 
-                                          <button
-                                            type="button"
-                                            className="admin-projects__approve-task"
-                                            onClick={() =>
-                                              setApproveTaskModal({
-                                                projectId: project._id,
-                                                taskId: task._id,
-                                                taskTitle: task.title,
-                                              })
-                                            }
-                                            disabled={
-                                              updatingTaskId === task._id
-                                            }
-                                          >
-                                            Aprobar tarea
-                                          </button>
-                                        </div>
+                              <section className="admin-projects__assignment">
+                                <h3>Responsable del proyecto</h3>
 
-                                        {requestChangesTaskId === task._id && (
-                                          <div className="admin-projects__changes-form">
-                                            <label>
-                                              <span>¿Qué debe corregirse?</span>
-
-                                              <textarea
-                                                rows="4"
-                                                value={
-                                                  reviewMessages[task._id] || ""
-                                                }
-                                                onChange={(event) =>
-                                                  handleReviewMessageChange(
-                                                    task._id,
-                                                    event.target.value,
-                                                  )
-                                                }
-                                                placeholder="Describe claramente los cambios que debe realizar el responsable..."
-                                              />
-                                            </label>
-
-                                            <div className="admin-projects__changes-form-actions">
-                                              <button
-                                                type="button"
-                                                className="admin-projects__changes-back"
-                                                onClick={() => {
-                                                  setRequestChangesTaskId(null);
-
-                                                  setErrorMessage("");
-                                                }}
-                                                disabled={
-                                                  updatingTaskId === task._id
-                                                }
-                                              >
-                                                Volver
-                                              </button>
-
-                                              <button
-                                                type="button"
-                                                className="admin-projects__changes-submit"
-                                                onClick={() =>
-                                                  handleReviewDecision(
-                                                    project._id,
-                                                    task._id,
-                                                    "changes",
-                                                  )
-                                                }
-                                                disabled={
-                                                  updatingTaskId === task._id
-                                                }
-                                              >
-                                                {updatingTaskId === task._id
-                                                  ? "Enviando..."
-                                                  : "Enviar solicitud"}
-                                              </button>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </>
-                                    )}
-
-                                    <div className="admin-projects__task-actions">
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleStartEditTask(task)
-                                        }
-                                        disabled={
-                                          updatingTaskId === task._id ||
-                                          task.status === "cancelled"
-                                        }
-                                      >
-                                        Editar
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleToggleTaskActivity(task._id)
-                                        }
-                                      >
-                                        {openActivityTaskId === task._id
-                                          ? "Ocultar historial"
-                                          : "Ver historial"}
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleToggleTaskDeliverables(task._id)
-                                        }
-                                      >
-                                        {openDeliverablesTaskId === task._id
-                                          ? "Ocultar entregables"
-                                          : "Ver entregables"}
-                                      </button>
-
-                                      {task.isArchived ? (
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleToggleTaskArchive(
-                                              project._id,
-                                              task._id,
-                                              false,
-                                            )
-                                          }
-                                          disabled={updatingTaskId === task._id}
-                                        >
-                                          Desarchivar
-                                        </button>
-                                      ) : (
-                                        ["completed", "cancelled"].includes(
-                                          task.status,
-                                        ) && (
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              setArchiveTaskModal({
-                                                projectId: project._id,
-                                                taskId: task._id,
-                                                taskTitle: task.title,
-                                              })
-                                            }
-                                            disabled={
-                                              updatingTaskId === task._id
-                                            }
-                                          >
-                                            Archivar
-                                          </button>
-                                        )
-                                      )}
-
-                                      <button
-                                        type="button"
-                                        className="admin-projects__task-cancel"
-                                        onClick={() =>
-                                          setCancelTaskModal({
-                                            projectId: project._id,
-                                            taskId: task._id,
-                                            taskTitle: task.title,
-                                          })
-                                        }
-                                        disabled={
-                                          updatingTaskId === task._id ||
-                                          task.status === "cancelled"
-                                        }
-                                      >
-                                        {task.status === "cancelled"
-                                          ? "Cancelada"
-                                          : "Cancelar"}
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {openDeliverablesTaskId === task._id && (
-                                    <div className="admin-projects__task-deliverables">
-                                      <h5>Entregables de la tarea</h5>
-
-                                      {loadingDeliverablesTaskId ===
-                                      task._id ? (
-                                        <p>Cargando entregables...</p>
-                                      ) : taskDeliverablesById[task._id]
-                                          ?.length ? (
-                                        <div className="admin-projects__deliverables-list">
-                                          {taskDeliverablesById[task._id].map(
-                                            (deliverable) => (
-                                              <div
-                                                className="admin-projects__deliverable-item"
-                                                key={deliverable._id}
-                                              >
-                                                <div className="admin-projects__deliverable-info">
-                                                  <strong>
-                                                    {deliverable.name}
-                                                  </strong>
-
-                                                  <span>
-                                                    {deliverableSourceLabels[
-                                                      deliverable.source
-                                                    ] || deliverable.source}
-                                                  </span>
-                                                </div>
-
-                                                <a
-                                                  href={deliverable.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                >
-                                                  {deliverable.source ===
-                                                  "canva"
-                                                    ? "Abrir en Canva"
-                                                    : deliverable.source ===
-                                                        "drive"
-                                                      ? "Abrir en Drive"
-                                                      : deliverable.source ===
-                                                          "affinity"
-                                                        ? "Abrir en Affinity"
-                                                        : deliverable.source ===
-                                                            "upload"
-                                                          ? "Abrir archivo"
-                                                          : "Abrir enlace"}
-                                                </a>
-
-                                                <small>
-                                                  Agregado por{" "}
-                                                  {deliverable.uploadedBy
-                                                    ?.name || "Usuario BeeUX"}
-                                                  {" · "}
-                                                  {new Date(
-                                                    deliverable.createdAt,
-                                                  ).toLocaleString("es-MX")}
-                                                </small>
-                                              </div>
-                                            ),
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <p>
-                                          Todavía no hay entregables para esta
-                                          tarea.
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {openActivityTaskId === task._id && (
-                                    <div className="admin-projects__task-activity">
-                                      <h5>Historial de actividad</h5>
-
-                                      {task.status !== "cancelled" && (
-                                        <div className="admin-projects__task-comment-form">
-                                          <textarea
-                                            rows="3"
-                                            value={taskComments[task._id] || ""}
-                                            onChange={(event) =>
-                                              handleTaskCommentChange(
-                                                task._id,
-                                                event.target.value,
-                                              )
-                                            }
-                                            placeholder="Escribe una nota o comentario sobre esta tarea..."
-                                          />
-
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              handleAddTaskComment(task._id)
-                                            }
-                                            disabled={
-                                              sendingCommentTaskId === task._id
-                                            }
-                                          >
-                                            {sendingCommentTaskId === task._id
-                                              ? "Enviando..."
-                                              : "Agregar comentario"}
-                                          </button>
-                                        </div>
-                                      )}
-
-                                      {loadingActivityTaskId === task._id ? (
-                                        <p>Cargando historial...</p>
-                                      ) : taskActivityById[task._id]?.length ? (
-                                        <div className="admin-projects__activity-list">
-                                          {taskActivityById[task._id].map(
-                                            (activity) => (
-                                              <div
-                                                className="admin-projects__activity-item"
-                                                key={activity._id}
-                                              >
-                                                <strong>
-                                                  {activity.user?.name ||
-                                                    "Usuario BeeUX"}
-                                                </strong>
-
-                                                <span>
-                                                  {activity.fromStatus &&
-                                                  activity.toStatus
-                                                    ? `${
-                                                        taskStatusLabels[
-                                                          activity.fromStatus
-                                                        ] || activity.fromStatus
-                                                      } → ${
-                                                        taskStatusLabels[
-                                                          activity.toStatus
-                                                        ] || activity.toStatus
-                                                      }`
-                                                    : activity.type ===
-                                                        "comment"
-                                                      ? "Comentario"
-                                                      : activity.type}
-                                                </span>
-
-                                                {activity.message && (
-                                                  <p>{activity.message}</p>
-                                                )}
-
-                                                <small>
-                                                  {new Date(
-                                                    activity.createdAt,
-                                                  ).toLocaleString("es-MX")}
-                                                </small>
-                                              </div>
-                                            ),
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <p>
-                                          Todavía no hay actividad registrada
-                                          para esta tarea.
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <div className="admin-projects__task-edit">
-                                  <label>
-                                    <span>Título</span>
-
-                                    <input
-                                      type="text"
-                                      value={editForm.title}
-                                      onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
-                                          "title",
-                                          event.target.value,
-                                        )
-                                      }
-                                    />
-                                  </label>
-
+                                <div className="admin-projects__assignment-controls">
                                   <label>
                                     <span>Responsable</span>
 
                                     <select
-                                      value={editForm.assignedTo}
+                                      value={assigneeDrafts[project._id] || ""}
                                       onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
-                                          "assignedTo",
+                                        handleAssigneeChange(
+                                          project._id,
                                           event.target.value,
                                         )
                                       }
@@ -1577,68 +1234,909 @@ function AdminProjects() {
                                     </select>
                                   </label>
 
-                                  <label>
-                                    <span>Prioridad</span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleSaveAssignee(project._id)
+                                    }
+                                    disabled={
+                                      savingAssigneeProjectId === project._id
+                                    }
+                                  >
+                                    {savingAssigneeProjectId === project._id
+                                      ? "Asignando..."
+                                      : "Guardar responsable"}
+                                  </button>
+                                </div>
+                              </section>
 
-                                    <select
-                                      value={editForm.priority}
-                                      onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
-                                          "priority",
-                                          event.target.value,
-                                        )
-                                      }
-                                    >
-                                      <option value="low">Baja</option>
+                              <section className="admin-projects__tasks-section">
+                                <div className="admin-projects__tasks-header">
+                                  <div>
+                                    <span>Trabajo del equipo</span>
 
-                                      <option value="medium">Media</option>
+                                    <h3>Tareas</h3>
+                                  </div>
 
-                                      <option value="high">Alta</option>
+                                  <strong>{filteredProjectTasks.length}</strong>
+                                </div>
 
-                                      <option value="urgent">Urgente</option>
-                                    </select>
-                                  </label>
+                                <div className="admin-projects__task-filters">
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "active" ? "is-active" : ""
+                                    }
+                                    onClick={() => setTaskFilter("active")}
+                                  >
+                                    Activas ({taskCounts.active})
+                                  </button>
 
-                                  <label>
-                                    <span>Fecha límite</span>
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "review" ? "is-active" : ""
+                                    }
+                                    onClick={() => setTaskFilter("review")}
+                                  >
+                                    En revisión ({taskCounts.review})
+                                  </button>
 
-                                    <input
-                                      type="date"
-                                      value={editForm.dueDate}
-                                      onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
-                                          "dueDate",
-                                          event.target.value,
-                                        )
-                                      }
-                                    />
-                                  </label>
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "completed"
+                                        ? "is-active"
+                                        : ""
+                                    }
+                                    onClick={() => setTaskFilter("completed")}
+                                  >
+                                    Completadas ({taskCounts.completed})
+                                  </button>
 
-                                  <label className="admin-projects__task-edit-description">
-                                    <span>Descripción</span>
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "cancelled"
+                                        ? "is-active"
+                                        : ""
+                                    }
+                                    onClick={() => setTaskFilter("cancelled")}
+                                  >
+                                    Canceladas ({taskCounts.cancelled})
+                                  </button>
 
-                                    <textarea
-                                      rows="4"
-                                      value={editForm.description}
-                                      onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
-                                          "description",
-                                          event.target.value,
-                                        )
-                                      }
-                                    />
-                                  </label>
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "archived"
+                                        ? "is-active"
+                                        : ""
+                                    }
+                                    onClick={() => setTaskFilter("archived")}
+                                  >
+                                    Archivadas ({taskCounts.archived})
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "all" ? "is-active" : ""
+                                    }
+                                    onClick={() => setTaskFilter("all")}
+                                  >
+                                    Todas ({taskCounts.all})
+                                  </button>
+                                </div>
+
+                                {filteredProjectTasks.length === 0 ? (
+                                  <p className="admin-projects__empty">
+                                    No hay tareas para este filtro.
+                                  </p>
+                                ) : (
+                                  <div className="admin-projects__tasks-list">
+                                    {filteredProjectTasks.map((task) => {
+                                      const isEditing =
+                                        editingTaskId === task._id;
+
+                                      const editForm = taskEditForms[
+                                        task._id
+                                      ] || {
+                                        title: task.title || "",
+
+                                        description: task.description || "",
+
+                                        assignedTo: getAssigneeId(
+                                          task.assignedTo,
+                                        ),
+
+                                        priority: task.priority || "medium",
+
+                                        dueDate: task.dueDate
+                                          ? new Date(task.dueDate)
+                                              .toISOString()
+                                              .slice(0, 10)
+                                          : "",
+
+                                        clientVisible: Boolean(
+                                          task.clientVisible,
+                                        ),
+                                      };
+
+                                      return (
+                                        <article
+                                          className="admin-projects__task"
+                                          key={task._id}
+                                        >
+                                          {!isEditing ? (
+                                            <>
+                                              <div>
+                                                <h4>{task.title}</h4>
+
+                                                {task.description && (
+                                                  <p>{task.description}</p>
+                                                )}
+                                              </div>
+
+                                              <div className="admin-projects__task-meta">
+                                                <span>
+                                                  Estado:{" "}
+                                                  <strong>
+                                                    {taskStatusLabels[
+                                                      task.status
+                                                    ] || task.status}
+                                                  </strong>
+                                                </span>
+
+                                                <span>
+                                                  Prioridad:{" "}
+                                                  <strong>
+                                                    {priorityLabels[
+                                                      task.priority
+                                                    ] || task.priority}
+                                                  </strong>
+                                                </span>
+
+                                                <span>
+                                                  Responsable:{" "}
+                                                  <strong>
+                                                    {task.assignedTo?.name ||
+                                                      "Sin asignar"}
+                                                  </strong>
+                                                </span>
+
+                                                <span>
+                                                  Fecha límite:{" "}
+                                                  <strong>
+                                                    {task.dueDate
+                                                      ? new Date(
+                                                          task.dueDate,
+                                                        ).toLocaleDateString(
+                                                          "es-MX",
+                                                        )
+                                                      : "Sin fecha"}
+                                                  </strong>
+                                                </span>
+
+                                                <span>
+                                                  Cliente:{" "}
+                                                  <strong>
+                                                    {task.clientVisible
+                                                      ? "Visible"
+                                                      : "Interna"}
+                                                  </strong>
+                                                </span>
+
+                                                {task.status === "review" && (
+                                                  <>
+                                                    <div className="admin-projects__review-actions">
+                                                      <button
+                                                        type="button"
+                                                        className="admin-projects__request-changes"
+                                                        onClick={() => {
+                                                          setRequestChangesTaskId(
+                                                            task._id,
+                                                          );
+
+                                                          setErrorMessage("");
+                                                          setSuccessMessage("");
+                                                        }}
+                                                        disabled={
+                                                          updatingTaskId ===
+                                                          task._id
+                                                        }
+                                                      >
+                                                        Solicitar cambios
+                                                      </button>
+
+                                                      <button
+                                                        type="button"
+                                                        className="admin-projects__approve-task"
+                                                        onClick={() =>
+                                                          setApproveTaskModal({
+                                                            projectId:
+                                                              project._id,
+                                                            taskId: task._id,
+                                                            taskTitle:
+                                                              task.title,
+                                                          })
+                                                        }
+                                                        disabled={
+                                                          updatingTaskId ===
+                                                          task._id
+                                                        }
+                                                      >
+                                                        Aprobar tarea
+                                                      </button>
+                                                    </div>
+
+                                                    {requestChangesTaskId ===
+                                                      task._id && (
+                                                      <div className="admin-projects__changes-form">
+                                                        <label>
+                                                          <span>
+                                                            ¿Qué debe
+                                                            corregirse?
+                                                          </span>
+
+                                                          <textarea
+                                                            rows="4"
+                                                            value={
+                                                              reviewMessages[
+                                                                task._id
+                                                              ] || ""
+                                                            }
+                                                            onChange={(event) =>
+                                                              handleReviewMessageChange(
+                                                                task._id,
+                                                                event.target
+                                                                  .value,
+                                                              )
+                                                            }
+                                                            placeholder="Describe claramente los cambios que debe realizar el responsable..."
+                                                          />
+                                                        </label>
+
+                                                        <div className="admin-projects__changes-form-actions">
+                                                          <button
+                                                            type="button"
+                                                            className="admin-projects__changes-back"
+                                                            onClick={() => {
+                                                              setRequestChangesTaskId(
+                                                                null,
+                                                              );
+
+                                                              setErrorMessage(
+                                                                "",
+                                                              );
+                                                            }}
+                                                            disabled={
+                                                              updatingTaskId ===
+                                                              task._id
+                                                            }
+                                                          >
+                                                            Volver
+                                                          </button>
+
+                                                          <button
+                                                            type="button"
+                                                            className="admin-projects__changes-submit"
+                                                            onClick={() =>
+                                                              handleReviewDecision(
+                                                                project._id,
+                                                                task._id,
+                                                                "changes",
+                                                              )
+                                                            }
+                                                            disabled={
+                                                              updatingTaskId ===
+                                                              task._id
+                                                            }
+                                                          >
+                                                            {updatingTaskId ===
+                                                            task._id
+                                                              ? "Enviando..."
+                                                              : "Enviar solicitud"}
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </>
+                                                )}
+
+                                                <div className="admin-projects__task-actions">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleStartEditTask(task)
+                                                    }
+                                                    disabled={
+                                                      updatingTaskId ===
+                                                        task._id ||
+                                                      task.status ===
+                                                        "cancelled"
+                                                    }
+                                                  >
+                                                    Editar
+                                                  </button>
+
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleToggleTaskActivity(
+                                                        task._id,
+                                                      )
+                                                    }
+                                                  >
+                                                    {openActivityTaskId ===
+                                                    task._id
+                                                      ? "Ocultar historial"
+                                                      : "Ver historial"}
+                                                  </button>
+
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleToggleTaskDeliverables(
+                                                        task._id,
+                                                      )
+                                                    }
+                                                  >
+                                                    {openDeliverablesTaskId ===
+                                                    task._id
+                                                      ? "Ocultar entregables"
+                                                      : "Ver entregables"}
+                                                  </button>
+
+                                                  {task.isArchived ? (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() =>
+                                                        handleToggleTaskArchive(
+                                                          project._id,
+                                                          task._id,
+                                                          false,
+                                                        )
+                                                      }
+                                                      disabled={
+                                                        updatingTaskId ===
+                                                        task._id
+                                                      }
+                                                    >
+                                                      Desarchivar
+                                                    </button>
+                                                  ) : (
+                                                    [
+                                                      "completed",
+                                                      "cancelled",
+                                                    ].includes(task.status) && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          setArchiveTaskModal({
+                                                            projectId:
+                                                              project._id,
+                                                            taskId: task._id,
+                                                            taskTitle:
+                                                              task.title,
+                                                          })
+                                                        }
+                                                        disabled={
+                                                          updatingTaskId ===
+                                                          task._id
+                                                        }
+                                                      >
+                                                        Archivar
+                                                      </button>
+                                                    )
+                                                  )}
+
+                                                  <button
+                                                    type="button"
+                                                    className="admin-projects__task-cancel"
+                                                    onClick={() =>
+                                                      setCancelTaskModal({
+                                                        projectId: project._id,
+                                                        taskId: task._id,
+                                                        taskTitle: task.title,
+                                                      })
+                                                    }
+                                                    disabled={
+                                                      updatingTaskId ===
+                                                        task._id ||
+                                                      task.status ===
+                                                        "cancelled"
+                                                    }
+                                                  >
+                                                    {task.status === "cancelled"
+                                                      ? "Cancelada"
+                                                      : "Cancelar"}
+                                                  </button>
+                                                </div>
+                                              </div>
+
+                                              {openDeliverablesTaskId ===
+                                                task._id && (
+                                                <div className="admin-projects__task-deliverables">
+                                                  <h5>
+                                                    Entregables de la tarea
+                                                  </h5>
+
+                                                  {loadingDeliverablesTaskId ===
+                                                  task._id ? (
+                                                    <p>
+                                                      Cargando entregables...
+                                                    </p>
+                                                  ) : taskDeliverablesById[
+                                                      task._id
+                                                    ]?.length ? (
+                                                    <div className="admin-projects__deliverables-list">
+                                                      {taskDeliverablesById[
+                                                        task._id
+                                                      ].map((deliverable) => (
+                                                        <div
+                                                          className="admin-projects__deliverable-item"
+                                                          key={deliverable._id}
+                                                        >
+                                                          <div className="admin-projects__deliverable-info">
+                                                            <strong>
+                                                              {deliverable.name}
+                                                            </strong>
+
+                                                            <span>
+                                                              {deliverableSourceLabels[
+                                                                deliverable
+                                                                  .source
+                                                              ] ||
+                                                                deliverable.source}
+                                                            </span>
+                                                          </div>
+
+                                                          <a
+                                                            href={
+                                                              deliverable.url
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                          >
+                                                            {deliverable.source ===
+                                                            "canva"
+                                                              ? "Abrir en Canva"
+                                                              : deliverable.source ===
+                                                                  "drive"
+                                                                ? "Abrir en Drive"
+                                                                : deliverable.source ===
+                                                                    "affinity"
+                                                                  ? "Abrir en Affinity"
+                                                                  : deliverable.source ===
+                                                                      "upload"
+                                                                    ? "Abrir archivo"
+                                                                    : "Abrir enlace"}
+                                                          </a>
+
+                                                          <small>
+                                                            Agregado por{" "}
+                                                            {deliverable
+                                                              .uploadedBy
+                                                              ?.name ||
+                                                              "Usuario BeeUX"}
+                                                            {" · "}
+                                                            {new Date(
+                                                              deliverable.createdAt,
+                                                            ).toLocaleString(
+                                                              "es-MX",
+                                                            )}
+                                                          </small>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  ) : (
+                                                    <p>
+                                                      Todavía no hay entregables
+                                                      para esta tarea.
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              )}
+
+                                              {openActivityTaskId ===
+                                                task._id && (
+                                                <div className="admin-projects__task-activity">
+                                                  <h5>
+                                                    Historial de actividad
+                                                  </h5>
+
+                                                  {task.status !==
+                                                    "cancelled" && (
+                                                    <div className="admin-projects__task-comment-form">
+                                                      <textarea
+                                                        rows="3"
+                                                        value={
+                                                          taskComments[
+                                                            task._id
+                                                          ] || ""
+                                                        }
+                                                        onChange={(event) =>
+                                                          handleTaskCommentChange(
+                                                            task._id,
+                                                            event.target.value,
+                                                          )
+                                                        }
+                                                        placeholder="Escribe una nota o comentario sobre esta tarea..."
+                                                      />
+
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          handleAddTaskComment(
+                                                            task._id,
+                                                          )
+                                                        }
+                                                        disabled={
+                                                          sendingCommentTaskId ===
+                                                          task._id
+                                                        }
+                                                      >
+                                                        {sendingCommentTaskId ===
+                                                        task._id
+                                                          ? "Enviando..."
+                                                          : "Agregar comentario"}
+                                                      </button>
+                                                    </div>
+                                                  )}
+
+                                                  {loadingActivityTaskId ===
+                                                  task._id ? (
+                                                    <p>Cargando historial...</p>
+                                                  ) : taskActivityById[task._id]
+                                                      ?.length ? (
+                                                    <div className="admin-projects__activity-list">
+                                                      {taskActivityById[
+                                                        task._id
+                                                      ].map((activity) => (
+                                                        <div
+                                                          className="admin-projects__activity-item"
+                                                          key={activity._id}
+                                                        >
+                                                          <strong>
+                                                            {activity.user
+                                                              ?.name ||
+                                                              "Usuario BeeUX"}
+                                                          </strong>
+
+                                                          <span>
+                                                            {activity.fromStatus &&
+                                                            activity.toStatus
+                                                              ? `${
+                                                                  taskStatusLabels[
+                                                                    activity
+                                                                      .fromStatus
+                                                                  ] ||
+                                                                  activity.fromStatus
+                                                                } → ${
+                                                                  taskStatusLabels[
+                                                                    activity
+                                                                      .toStatus
+                                                                  ] ||
+                                                                  activity.toStatus
+                                                                }`
+                                                              : activity.type ===
+                                                                  "comment"
+                                                                ? "Comentario"
+                                                                : activity.type}
+                                                          </span>
+
+                                                          {activity.message && (
+                                                            <p>
+                                                              {activity.message}
+                                                            </p>
+                                                          )}
+
+                                                          <small>
+                                                            {new Date(
+                                                              activity.createdAt,
+                                                            ).toLocaleString(
+                                                              "es-MX",
+                                                            )}
+                                                          </small>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  ) : (
+                                                    <p>
+                                                      Todavía no hay actividad
+                                                      registrada para esta
+                                                      tarea.
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </>
+                                          ) : (
+                                            <div className="admin-projects__task-edit">
+                                              <label>
+                                                <span>Título</span>
+
+                                                <input
+                                                  type="text"
+                                                  value={editForm.title}
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "title",
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              </label>
+
+                                              <label>
+                                                <span>Responsable</span>
+
+                                                <select
+                                                  value={editForm.assignedTo}
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "assignedTo",
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                >
+                                                  <option value="">
+                                                    Sin asignar
+                                                  </option>
+
+                                                  {teamMembers.map((member) => (
+                                                    <option
+                                                      key={member._id}
+                                                      value={member._id}
+                                                    >
+                                                      {member.name} —{" "}
+                                                      {member.role === "admin"
+                                                        ? "Admin"
+                                                        : "Empleado"}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </label>
+
+                                              <label>
+                                                <span>Prioridad</span>
+
+                                                <select
+                                                  value={editForm.priority}
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "priority",
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                >
+                                                  <option value="low">
+                                                    Baja
+                                                  </option>
+
+                                                  <option value="medium">
+                                                    Media
+                                                  </option>
+
+                                                  <option value="high">
+                                                    Alta
+                                                  </option>
+
+                                                  <option value="urgent">
+                                                    Urgente
+                                                  </option>
+                                                </select>
+                                              </label>
+
+                                              <label>
+                                                <span>Fecha límite</span>
+
+                                                <input
+                                                  type="date"
+                                                  value={editForm.dueDate}
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "dueDate",
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              </label>
+
+                                              <label className="admin-projects__task-edit-description">
+                                                <span>Descripción</span>
+
+                                                <textarea
+                                                  rows="4"
+                                                  value={editForm.description}
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "description",
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              </label>
+
+                                              <label className="admin-projects__visibility">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={
+                                                    editForm.clientVisible
+                                                  }
+                                                  onChange={(event) =>
+                                                    handleTaskEditChange(
+                                                      task._id,
+                                                      "clientVisible",
+                                                      event.target.checked,
+                                                    )
+                                                  }
+                                                />
+
+                                                <span>
+                                                  Mostrar esta tarea al cliente
+                                                </span>
+                                              </label>
+
+                                              <div className="admin-projects__task-edit-actions">
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleSaveTaskEdit(
+                                                      project._id,
+                                                      task._id,
+                                                    )
+                                                  }
+                                                  disabled={
+                                                    updatingTaskId === task._id
+                                                  }
+                                                >
+                                                  {updatingTaskId === task._id
+                                                    ? "Guardando..."
+                                                    : "Guardar"}
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  className="admin-projects__task-edit-cancel"
+                                                  onClick={() =>
+                                                    setEditingTaskId(null)
+                                                  }
+                                                  disabled={
+                                                    updatingTaskId === task._id
+                                                  }
+                                                >
+                                                  Cerrar
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </article>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                <div className="admin-projects__task-form">
+                                  <h3>Crear nueva tarea</h3>
+
+                                  <div className="admin-projects__task-form-grid">
+                                    <label>
+                                      <span>Título *</span>
+
+                                      <input
+                                        type="text"
+                                        value={taskForm.title}
+                                        onChange={(event) =>
+                                          handleTaskFormChange(
+                                            project._id,
+                                            "title",
+                                            event.target.value,
+                                          )
+                                        }
+                                        placeholder="Ej. Diseñar publicaciones"
+                                      />
+                                    </label>
+
+                                    <label>
+                                      <span>Responsable</span>
+
+                                      <select
+                                        value={taskForm.assignedTo}
+                                        onChange={(event) =>
+                                          handleTaskFormChange(
+                                            project._id,
+                                            "assignedTo",
+                                            event.target.value,
+                                          )
+                                        }
+                                      >
+                                        <option value="">Sin asignar</option>
+
+                                        {teamMembers.map((member) => (
+                                          <option
+                                            key={member._id}
+                                            value={member._id}
+                                          >
+                                            {member.name} —{" "}
+                                            {member.role === "admin"
+                                              ? "Admin"
+                                              : "Empleado"}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+
+                                    <label>
+                                      <span>Prioridad</span>
+
+                                      <select
+                                        value={taskForm.priority}
+                                        onChange={(event) =>
+                                          handleTaskFormChange(
+                                            project._id,
+                                            "priority",
+                                            event.target.value,
+                                          )
+                                        }
+                                      >
+                                        <option value="low">Baja</option>
+
+                                        <option value="medium">Media</option>
+
+                                        <option value="high">Alta</option>
+
+                                        <option value="urgent">Urgente</option>
+                                      </select>
+                                    </label>
+
+                                    <label>
+                                      <span>Fecha límite</span>
+
+                                      <input
+                                        type="date"
+                                        value={taskForm.dueDate}
+                                        onChange={(event) =>
+                                          handleTaskFormChange(
+                                            project._id,
+                                            "dueDate",
+                                            event.target.value,
+                                          )
+                                        }
+                                      />
+                                    </label>
+
+                                    <label className="admin-projects__task-description">
+                                      <span>Descripción</span>
+
+                                      <textarea
+                                        rows="4"
+                                        value={taskForm.description}
+                                        onChange={(event) =>
+                                          handleTaskFormChange(
+                                            project._id,
+                                            "description",
+                                            event.target.value,
+                                          )
+                                        }
+                                        placeholder="Describe qué debe realizarse, entregables y contexto necesario."
+                                      />
+                                    </label>
+                                  </div>
 
                                   <label className="admin-projects__visibility">
                                     <input
                                       type="checkbox"
-                                      checked={editForm.clientVisible}
+                                      checked={taskForm.clientVisible}
                                       onChange={(event) =>
-                                        handleTaskEditChange(
-                                          task._id,
+                                        handleTaskFormChange(
+                                          project._id,
                                           "clientVisible",
                                           event.target.checked,
                                         )
@@ -1648,172 +2146,31 @@ function AdminProjects() {
                                     <span>Mostrar esta tarea al cliente</span>
                                   </label>
 
-                                  <div className="admin-projects__task-edit-actions">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleSaveTaskEdit(
-                                          project._id,
-                                          task._id,
-                                        )
-                                      }
-                                      disabled={updatingTaskId === task._id}
-                                    >
-                                      {updatingTaskId === task._id
-                                        ? "Guardando..."
-                                        : "Guardar"}
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="admin-projects__task-edit-cancel"
-                                      onClick={() => setEditingTaskId(null)}
-                                      disabled={updatingTaskId === task._id}
-                                    >
-                                      Cerrar
-                                    </button>
-                                  </div>
+                                  <button
+                                    className="admin-projects__create-task"
+                                    type="button"
+                                    onClick={() =>
+                                      handleCreateTask(project._id)
+                                    }
+                                    disabled={
+                                      creatingTaskProjectId === project._id
+                                    }
+                                  >
+                                    {creatingTaskProjectId === project._id
+                                      ? "Creando tarea..."
+                                      : "+ Crear tarea"}
+                                  </button>
                                 </div>
-                              )}
-                            </article>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="admin-projects__task-form">
-                      <h3>Crear nueva tarea</h3>
-
-                      <div className="admin-projects__task-form-grid">
-                        <label>
-                          <span>Título *</span>
-
-                          <input
-                            type="text"
-                            value={taskForm.title}
-                            onChange={(event) =>
-                              handleTaskFormChange(
-                                project._id,
-                                "title",
-                                event.target.value,
-                              )
-                            }
-                            placeholder="Ej. Diseñar publicaciones"
-                          />
-                        </label>
-
-                        <label>
-                          <span>Responsable</span>
-
-                          <select
-                            value={taskForm.assignedTo}
-                            onChange={(event) =>
-                              handleTaskFormChange(
-                                project._id,
-                                "assignedTo",
-                                event.target.value,
-                              )
-                            }
-                          >
-                            <option value="">Sin asignar</option>
-
-                            {teamMembers.map((member) => (
-                              <option key={member._id} value={member._id}>
-                                {member.name} —{" "}
-                                {member.role === "admin" ? "Admin" : "Empleado"}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-
-                        <label>
-                          <span>Prioridad</span>
-
-                          <select
-                            value={taskForm.priority}
-                            onChange={(event) =>
-                              handleTaskFormChange(
-                                project._id,
-                                "priority",
-                                event.target.value,
-                              )
-                            }
-                          >
-                            <option value="low">Baja</option>
-
-                            <option value="medium">Media</option>
-
-                            <option value="high">Alta</option>
-
-                            <option value="urgent">Urgente</option>
-                          </select>
-                        </label>
-
-                        <label>
-                          <span>Fecha límite</span>
-
-                          <input
-                            type="date"
-                            value={taskForm.dueDate}
-                            onChange={(event) =>
-                              handleTaskFormChange(
-                                project._id,
-                                "dueDate",
-                                event.target.value,
-                              )
-                            }
-                          />
-                        </label>
-
-                        <label className="admin-projects__task-description">
-                          <span>Descripción</span>
-
-                          <textarea
-                            rows="4"
-                            value={taskForm.description}
-                            onChange={(event) =>
-                              handleTaskFormChange(
-                                project._id,
-                                "description",
-                                event.target.value,
-                              )
-                            }
-                            placeholder="Describe qué debe realizarse, entregables y contexto necesario."
-                          />
-                        </label>
-                      </div>
-
-                      <label className="admin-projects__visibility">
-                        <input
-                          type="checkbox"
-                          checked={taskForm.clientVisible}
-                          onChange={(event) =>
-                            handleTaskFormChange(
-                              project._id,
-                              "clientVisible",
-                              event.target.checked,
-                            )
-                          }
-                        />
-
-                        <span>Mostrar esta tarea al cliente</span>
-                      </label>
-
-                      <button
-                        className="admin-projects__create-task"
-                        type="button"
-                        onClick={() => handleCreateTask(project._id)}
-                        disabled={creatingTaskProjectId === project._id}
-                      >
-                        {creatingTaskProjectId === project._id
-                          ? "Creando tarea..."
-                          : "+ Crear tarea"}
-                      </button>
-                    </div>
-                  </section>
-                </article>
-              );
-            })}
+                              </section>
+                            </>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              ),
+            )}
           </div>
         </div>
       </main>
