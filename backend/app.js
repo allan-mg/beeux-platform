@@ -12,7 +12,30 @@ const { handleStripeWebhook } = require("./controllers/stripe");
 
 const app = express();
 
-app.use(cors());
+app.disable("x-powered-by");
+
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ||
+  process.env.FRONTEND_URL ||
+  "http://localhost:5173"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      const error = new Error("Origin not allowed by CORS");
+      error.statusCode = 403;
+      return callback(error);
+    },
+  }),
+);
 
 app.post(
   "/stripe/webhook",
@@ -22,7 +45,7 @@ app.post(
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(
   "/generated/contracts",
   express.static(path.join(__dirname, "generated", "contracts")),

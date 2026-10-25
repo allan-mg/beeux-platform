@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const getServices = () =>
-  fetch(`${BASE_URL}/services`).then((res) => {
+  fetch(`${API_BASE_URL}/services`).then((res) => {
     if (!res.ok) {
       return Promise.reject(`Error: ${res.status}`);
     }

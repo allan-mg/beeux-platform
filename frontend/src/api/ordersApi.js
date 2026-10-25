@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const createOrder = ({ token, serviceSlug, billingType }) =>
-  fetch(`${BASE_URL}/orders`, {
+  fetch(`${API_BASE_URL}/orders`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,7 +22,7 @@ export const createOrder = ({ token, serviceSlug, billingType }) =>
   });
 
 export const getOrderById = ({ token, orderId }) =>
-  fetch(`${BASE_URL}/orders/${orderId}`, {
+  fetch(`${API_BASE_URL}/orders/${orderId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -37,7 +37,7 @@ export const getOrderById = ({ token, orderId }) =>
   });
 
 export const createCheckoutSession = ({ token, orderId }) =>
-  fetch(`${BASE_URL}/checkout/session`, {
+  fetch(`${API_BASE_URL}/checkout/session`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

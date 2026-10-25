@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const register = ({ name, email, password }) =>
-  fetch(`${BASE_URL}/signup`, {
+  fetch(`${API_BASE_URL}/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,7 +22,7 @@ export const register = ({ name, email, password }) =>
   });
 
 export const login = ({ email, password }) =>
-  fetch(`${BASE_URL}/signin`, {
+  fetch(`${API_BASE_URL}/signin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -42,7 +42,7 @@ export const login = ({ email, password }) =>
   });
 
 export const getCurrentUser = (token) =>
-  fetch(`${BASE_URL}/users/me`, {
+  fetch(`${API_BASE_URL}/users/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -57,7 +57,7 @@ export const getCurrentUser = (token) =>
   });
 
 export const updateLegalProfile = ({ token, legalProfile }) =>
-  fetch(`${BASE_URL}/users/me/legal-profile`, {
+  fetch(`${API_BASE_URL}/users/me/legal-profile`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

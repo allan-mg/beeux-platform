@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const getMyContracts = (token) =>
-  fetch(`${BASE_URL}/contracts/me`, {
+  fetch(`${API_BASE_URL}/contracts/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -16,7 +16,7 @@ export const getMyContracts = (token) =>
   });
 
 export const getContractByOrder = ({ token, orderId }) =>
-  fetch(`${BASE_URL}/contracts/order/${orderId}`, {
+  fetch(`${API_BASE_URL}/contracts/order/${orderId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -31,7 +31,7 @@ export const getContractByOrder = ({ token, orderId }) =>
   });
 
 export const generateContract = ({ token, orderId }) =>
-  fetch(`${BASE_URL}/contracts/order/${orderId}/generate`, {
+  fetch(`${API_BASE_URL}/contracts/order/${orderId}/generate`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -47,7 +47,7 @@ export const generateContract = ({ token, orderId }) =>
   });
 
 export const signContract = ({ token, orderId, accepted, signerName }) =>
-  fetch(`${BASE_URL}/contracts/order/${orderId}/sign`, {
+  fetch(`${API_BASE_URL}/contracts/order/${orderId}/sign`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

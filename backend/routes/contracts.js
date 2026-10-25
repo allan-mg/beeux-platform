@@ -8,13 +8,29 @@ const {
 } = require("../controllers/contracts");
 
 const auth = require("../middlewares/auth");
+const validateObjectId = require("../middlewares/validateObjectId");
 
 router.get("/contracts/me", auth, getMyContracts);
 
-router.get("/contracts/order/:orderId", auth, getContractByOrder);
+router.get(
+  "/contracts/order/:orderId",
+  auth,
+  validateObjectId("orderId"),
+  getContractByOrder,
+);
 
-router.post("/contracts/order/:orderId/generate", auth, generateContract);
+router.post(
+  "/contracts/order/:orderId/generate",
+  auth,
+  validateObjectId("orderId"),
+  generateContract,
+);
 
-router.post("/contracts/order/:orderId/sign", auth, signContract);
+router.post(
+  "/contracts/order/:orderId/sign",
+  auth,
+  validateObjectId("orderId"),
+  signContract,
+);
 
 module.exports = router;

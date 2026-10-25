@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const getMyProjects = (token) =>
-  fetch(`${BASE_URL}/projects/me`, {
+  fetch(`${API_BASE_URL}/projects/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -16,7 +16,7 @@ export const getMyProjects = (token) =>
   });
 
 export const getProjectById = ({ token, projectId }) =>
-  fetch(`${BASE_URL}/projects/${projectId}`, {
+  fetch(`${API_BASE_URL}/projects/${projectId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -31,7 +31,7 @@ export const getProjectById = ({ token, projectId }) =>
   });
 
 export const updateProjectStatus = ({ token, projectId, status }) =>
-  fetch(`${BASE_URL}/admin/projects/${projectId}/status`, {
+  fetch(`${API_BASE_URL}/admin/projects/${projectId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export const updateProjectStatus = ({ token, projectId, status }) =>
   });
 
 export const getAllProjects = (token) =>
-  fetch(`${BASE_URL}/admin/projects`, {
+  fetch(`${API_BASE_URL}/admin/projects`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -66,7 +66,7 @@ export const getAllProjects = (token) =>
   });
 
 export const updateProjectAssignee = ({ token, projectId, assignedTo }) =>
-  fetch(`${BASE_URL}/admin/projects/${projectId}/assignee`, {
+  fetch(`${API_BASE_URL}/admin/projects/${projectId}/assignee`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

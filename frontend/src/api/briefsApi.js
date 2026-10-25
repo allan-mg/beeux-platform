@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const getBriefByOrder = ({ token, orderId }) =>
-  fetch(`${BASE_URL}/briefs/order/${orderId}`, {
+  fetch(`${API_BASE_URL}/briefs/order/${orderId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -21,7 +21,7 @@ export const updateBriefByOrder = ({
   answers,
   completed = false,
 }) =>
-  fetch(`${BASE_URL}/briefs/order/${orderId}`, {
+  fetch(`${API_BASE_URL}/briefs/order/${orderId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

@@ -1,8 +1,11 @@
+const mongoose = require("mongoose");
 const Stripe = require("stripe");
 const Order = require("../models/order");
 const Service = require("../models/service");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
 const createOrder = (req, res, next) => {
   const { serviceSlug, billingType = "one-time" } = req.body;
@@ -68,6 +71,12 @@ const getOrderById = (req, res, next) => {
 const createCheckoutSession = (req, res, next) => {
   const { orderId } = req.body;
 
+  if (!mongoose.isObjectIdOrHexString(orderId)) {
+    const error = new Error("Invalid orderId");
+    error.statusCode = 400;
+    return next(error);
+  }
+
   Order.findOne({
     _id: orderId,
     user: req.user._id,
@@ -104,8 +113,8 @@ const createCheckoutSession = (req, res, next) => {
           },
         ],
 
-        success_url: `http://localhost:5173/checkout/success?orderId=${order._id}`,
-        cancel_url: `http://localhost:5173/checkout/${order._id}`,
+        success_url: `${frontendUrl}/checkout/success?orderId=${order._id}`,
+        cancel_url: `${frontendUrl}/checkout/${order._id}`,
 
         metadata: {
           orderId: order._id.toString(),

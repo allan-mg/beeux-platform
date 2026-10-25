@@ -11,6 +11,13 @@ function Header() {
   };
 
   const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
+
+  const panelPath =
+    currentUser?.role === "admin"
+      ? "/admin/projects"
+      : currentUser?.role === "employee"
+        ? "/team/dashboard"
+        : "/dashboard";
   return (
     <header className="header">
       <div className="header__container">
@@ -47,7 +54,7 @@ function Header() {
         <div className="header__account">
           {currentUser ? (
             <>
-              <Link className="header__account-link" to="/dashboard">
+              <Link className="header__account-link" to={panelPath}>
                 Mi panel
               </Link>
 

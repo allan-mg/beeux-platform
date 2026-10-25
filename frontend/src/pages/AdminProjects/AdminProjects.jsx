@@ -831,6 +831,22 @@ function AdminProjects() {
     })
     .filter(Boolean);
 
+  const filteredProjectCount = filteredClientGroups.reduce(
+    (total, group) => total + group.projects.length,
+    0,
+  );
+
+  const hasActiveProjectFilters =
+    Boolean(projectSearch.trim()) ||
+    projectStatusFilter !== "all" ||
+    projectAssigneeFilter !== "all";
+
+  const handleClearProjectFilters = () => {
+    setProjectSearch("");
+    setProjectStatusFilter("all");
+    setProjectAssigneeFilter("all");
+  };
+
   const handleReviewDecision = (projectId, taskId, decision) => {
     const token = localStorage.getItem("jwt");
 
@@ -993,6 +1009,21 @@ function AdminProjects() {
                 ))}
               </select>
             </label>
+          </div>
+
+          <div className="admin-projects__results-toolbar">
+            <span>
+              {filteredProjectCount}{" "}
+              {filteredProjectCount === 1
+                ? "proyecto encontrado"
+                : "proyectos encontrados"}
+            </span>
+
+            {hasActiveProjectFilters && (
+              <button type="button" onClick={handleClearProjectFilters}>
+                Limpiar filtros
+              </button>
+            )}
           </div>
 
           {filteredClientGroups.length === 0 && (

@@ -8,9 +8,8 @@ import {
   signContract,
 } from "../../api/contractsApi";
 import { buildContractTemplate } from "../../utils/contractTemplate";
+import { API_BASE_URL } from "../../config/api";
 import "./ContractDetails.css";
-
-const BASE_URL = "http://localhost:3000";
 
 function ContractDetails() {
   const { orderId } = useParams();
@@ -134,7 +133,7 @@ function ContractDetails() {
     }
 
     window.open(
-      `${BASE_URL}${contract.contractUrl}`,
+      `${API_BASE_URL}${contract.contractUrl}`,
       "_blank",
       "noopener,noreferrer",
     );
@@ -146,7 +145,7 @@ function ContractDetails() {
     }
 
     window.open(
-      `${BASE_URL}${contract.signedContractUrl}`,
+      `${API_BASE_URL}${contract.signedContractUrl}`,
       "_blank",
       "noopener,noreferrer",
     );

@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../config/api";
 
 export const getMyTasks = (token) =>
-  fetch(`${BASE_URL}/team/tasks/me`, {
+  fetch(`${API_BASE_URL}/team/tasks/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -16,7 +16,7 @@ export const getMyTasks = (token) =>
   });
 
 export const updateMyTaskStatus = ({ token, taskId, status }) =>
-  fetch(`${BASE_URL}/team/tasks/${taskId}/status`, {
+  fetch(`${API_BASE_URL}/team/tasks/${taskId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export const updateMyTaskStatus = ({ token, taskId, status }) =>
   });
 
 export const getProjectTasks = ({ token, projectId }) =>
-  fetch(`${BASE_URL}/admin/projects/${projectId}/tasks`, {
+  fetch(`${API_BASE_URL}/admin/projects/${projectId}/tasks`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -51,7 +51,7 @@ export const getProjectTasks = ({ token, projectId }) =>
   });
 
 export const createProjectTask = ({ token, projectId, task }) =>
-  fetch(`${BASE_URL}/admin/projects/${projectId}/tasks`, {
+  fetch(`${API_BASE_URL}/admin/projects/${projectId}/tasks`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -69,7 +69,7 @@ export const createProjectTask = ({ token, projectId, task }) =>
   });
 
 export const updateTask = ({ token, taskId, updates }) =>
-  fetch(`${BASE_URL}/admin/tasks/${taskId}`, {
+  fetch(`${API_BASE_URL}/admin/tasks/${taskId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -87,7 +87,7 @@ export const updateTask = ({ token, taskId, updates }) =>
   });
 
 export const getTaskActivity = ({ token, taskId }) =>
-  fetch(`http://localhost:3000/admin/tasks/${taskId}/activity`, {
+  fetch(`${API_BASE_URL}/admin/tasks/${taskId}/activity`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -104,7 +104,7 @@ export const getTaskActivity = ({ token, taskId }) =>
   });
 
 export const addTaskComment = ({ token, taskId, message, mode = "admin" }) =>
-  fetch(`http://localhost:3000/${mode}/tasks/${taskId}/comments`, {
+  fetch(`${API_BASE_URL}/${mode}/tasks/${taskId}/comments`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -124,7 +124,7 @@ export const addTaskComment = ({ token, taskId, message, mode = "admin" }) =>
   });
 
 export const getMyTaskActivity = ({ token, taskId }) =>
-  fetch(`http://localhost:3000/team/tasks/${taskId}/activity`, {
+  fetch(`${API_BASE_URL}/team/tasks/${taskId}/activity`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -141,7 +141,7 @@ export const getMyTaskActivity = ({ token, taskId }) =>
   });
 
 export const getTaskDeliverables = ({ token, taskId, mode = "team" }) =>
-  fetch(`${BASE_URL}/${mode}/tasks/${taskId}/deliverables`, {
+  fetch(`${API_BASE_URL}/${mode}/tasks/${taskId}/deliverables`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -156,7 +156,7 @@ export const getTaskDeliverables = ({ token, taskId, mode = "team" }) =>
   });
 
 export const addMyTaskDeliverable = ({ token, taskId, deliverable }) =>
-  fetch(`${BASE_URL}/team/tasks/${taskId}/deliverables`, {
+  fetch(`${API_BASE_URL}/team/tasks/${taskId}/deliverables`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -174,7 +174,7 @@ export const addMyTaskDeliverable = ({ token, taskId, deliverable }) =>
   });
 
 export const toggleTaskArchive = ({ token, taskId, isArchived }) =>
-  fetch(`${BASE_URL}/admin/tasks/${taskId}/archive`, {
+  fetch(`${API_BASE_URL}/admin/tasks/${taskId}/archive`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
