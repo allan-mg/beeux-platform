@@ -130,6 +130,53 @@
   font-size: 14px;
 }
 
+.admin-projects__view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.admin-projects__view-controls > span {
+  color: var(--beeux-navy);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-projects__view-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-projects__view-buttons button {
+  min-height: 38px;
+  padding: 8px 14px;
+
+  border: 1px solid #d9dee5;
+  border-radius: 999px;
+
+  background-color: #ffffff;
+  color: var(--beeux-navy);
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-projects__view-buttons button.is-active {
+  border-color: var(--beeux-yellow);
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-weight: 700;
+}
+
 .admin-projects__results-toolbar {
   display: flex;
   align-items: center;
@@ -283,6 +330,34 @@
   gap: 24px;
 }
 
+.admin-projects__flat-client {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  text-align: right;
+}
+
+.admin-projects__flat-client span {
+  color: #667085;
+
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-projects__flat-client strong {
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+}
+
+.admin-projects__flat-client small {
+  color: #667085;
+
+  font-size: 12px;
+}
+
 .admin-projects__service-label,
 .admin-projects__controls span {
   color: #667085;
@@ -299,6 +374,7 @@
 
 .admin-projects__progress-info {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
 
@@ -326,6 +402,109 @@
   border-radius: 999px;
 
   background-color: var(--beeux-yellow);
+}
+
+.admin-projects__status-stepper {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.admin-projects__status-step {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  text-align: center;
+}
+
+.admin-projects__status-step::before {
+  position: absolute;
+  top: 16px;
+  left: calc(-50% - 5px);
+
+  width: calc(100% + 10px);
+  height: 2px;
+
+  background-color: #e4e7ec;
+
+  content: "";
+}
+
+.admin-projects__status-step:first-child::before {
+  display: none;
+}
+
+.admin-projects__status-step-marker {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 2px solid #d7dce2;
+  border-radius: 50%;
+
+  background-color: #ffffff;
+  color: #98a2b3;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-projects__status-step span {
+  color: #98a2b3;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-projects__status-step.is-completed::before,
+.admin-projects__status-step.is-current::before {
+  background-color: var(--beeux-yellow);
+}
+
+.admin-projects__status-step.is-completed .admin-projects__status-step-marker,
+.admin-projects__status-step.is-current .admin-projects__status-step-marker {
+  border-color: var(--beeux-yellow);
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+}
+
+.admin-projects__status-step.is-completed span,
+.admin-projects__status-step.is-current span {
+  color: var(--beeux-navy);
+}
+
+.admin-projects__cancelled-project {
+  display: inline-flex;
+  align-items: center;
+
+  width: fit-content;
+  margin-top: 18px;
+  padding: 7px 11px;
+
+  border-radius: 999px;
+
+  background-color: #fee4e2;
+  color: #b42318;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-projects__status-stepper.is-cancelled {
+  opacity: 0.45;
 }
 
 .admin-projects__project-toggle {
@@ -1385,8 +1564,52 @@
     align-items: flex-start;
     flex-direction: column;
   }
-}
 
+  .admin-projects__status-stepper {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .admin-projects__status-step {
+    align-items: flex-start;
+    flex-direction: row;
+
+    text-align: left;
+  }
+
+  .admin-projects__status-step::before {
+    top: -12px;
+    left: 15px;
+
+    width: 2px;
+    height: 12px;
+  }
+
+  .admin-projects__status-step:first-child::before {
+    display: none;
+  }
+
+  .admin-projects__status-step-marker {
+    flex: 0 0 32px;
+  }
+
+  .admin-projects__view-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-projects__view-buttons {
+    width: 100%;
+  }
+
+  .admin-projects__view-buttons button {
+    flex: 1;
+  }
+
+  .admin-projects__flat-client {
+    text-align: left;
+  }
+}
 
 @media screen and (max-width: 600px) {
   .admin-projects__modal {

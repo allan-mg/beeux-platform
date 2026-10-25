@@ -33,6 +33,16 @@ const statusLabels = {
   cancelled: "Cancelado",
 };
 
+const projectStatusSteps = [
+  "brief_received",
+  "planning",
+  "in_progress",
+  "review",
+  "delivered",
+];
+
+const getProjectStatusIndex = (status) => projectStatusSteps.indexOf(status);
+
 const taskStatusLabels = {
   pending: "Pendiente",
   in_progress: "En progreso",
@@ -130,6 +140,8 @@ function AdminProjects() {
   const [projectStatusFilter, setProjectStatusFilter] = useState("all");
 
   const [projectAssigneeFilter, setProjectAssigneeFilter] = useState("all");
+
+  const [projectViewMode, setProjectViewMode] = useState("clients");
 
   useEffect(() => {
     if (!successMessage) {
@@ -831,6 +843,24 @@ function AdminProjects() {
     })
     .filter(Boolean);
 
+  const filteredProjects = filteredClientGroups.flatMap(
+    (group) => group.projects,
+  );
+
+  const displayedProjectGroups =
+    projectViewMode === "clients"
+      ? filteredClientGroups
+      : [
+          {
+            client: {
+              _id: "all-projects",
+              name: "Todos los proyectos",
+              email: "",
+            },
+            projects: filteredProjects,
+          },
+        ];
+
   const filteredProjectCount = filteredClientGroups.reduce(
     (total, group) => total + group.projects.length,
     0,
@@ -1011,6 +1041,28 @@ function AdminProjects() {
             </label>
           </div>
 
+          <div className="admin-projects__view-controls">
+            <span>Vista</span>
+
+            <div className="admin-projects__view-buttons">
+              <button
+                type="button"
+                className={projectViewMode === "clients" ? "is-active" : ""}
+                onClick={() => setProjectViewMode("clients")}
+              >
+                Por cliente
+              </button>
+
+              <button
+                type="button"
+                className={projectViewMode === "projects" ? "is-active" : ""}
+                onClick={() => setProjectViewMode("projects")}
+              >
+                Todos los proyectos ({filteredProjects.length})
+              </button>
+            </div>
+          </div>
+
           <div className="admin-projects__results-toolbar">
             <span>
               {filteredProjectCount}{" "}
@@ -1033,30 +1085,32 @@ function AdminProjects() {
           )}
 
           <div className="admin-projects__list">
-            {filteredClientGroups.map(
+            {displayedProjectGroups.map(
               ({ client, projects: clientProjects }) => (
                 <section
                   className="admin-projects__client-group"
                   key={client._id || client.email}
                 >
-                  <div className="admin-projects__client-group-header">
-                    <div className="admin-projects__client-group-avatar">
-                      {(client.name || "C").charAt(0).toUpperCase()}
+                  {projectViewMode === "clients" && (
+                    <div className="admin-projects__client-group-header">
+                      <div className="admin-projects__client-group-avatar">
+                        {(client.name || "C").charAt(0).toUpperCase()}
+                      </div>
+
+                      <div className="admin-projects__client-group-info">
+                        <span>Cliente</span>
+
+                        <h2>{client.name}</h2>
+
+                        <small>{client.email}</small>
+                      </div>
+
+                      <strong className="admin-projects__client-project-count">
+                        {clientProjects.length}{" "}
+                        {clientProjects.length === 1 ? "proyecto" : "proyectos"}
+                      </strong>
                     </div>
-
-                    <div className="admin-projects__client-group-info">
-                      <span>Cliente</span>
-
-                      <h2>{client.name}</h2>
-
-                      <small>{client.email}</small>
-                    </div>
-
-                    <strong className="admin-projects__client-project-count">
-                      {clientProjects.length}{" "}
-                      {clientProjects.length === 1 ? "proyecto" : "proyectos"}
-                    </strong>
-                  </div>
+                  )}
 
                   <div className="admin-projects__client-projects">
                     {clientProjects.map((project) => {
@@ -1151,6 +1205,18 @@ function AdminProjects() {
                                 {project.serviceName}
                               </h2>
                             </div>
+
+                            {projectViewMode === "projects" && (
+                              <div className="admin-projects__flat-client">
+                                <span>Cliente</span>
+
+                                <strong>
+                                  {project.user?.name || "Cliente"}
+                                </strong>
+
+                                <small>{project.user?.email || ""}</small>
+                              </div>
+                            )}
                           </div>
 
                           <div className="admin-projects__progress-info">
@@ -1158,6 +1224,13 @@ function AdminProjects() {
                               Estado actual:{" "}
                               <strong>
                                 {statusLabels[project.status] || project.status}
+                              </strong>
+                            </span>
+
+                            <span>
+                              Responsable:{" "}
+                              <strong>
+                                {project.assignedTo?.name || "Sin asignar"}
                               </strong>
                             </span>
 
@@ -1173,6 +1246,47 @@ function AdminProjects() {
                                 width: `${project.progress}%`,
                               }}
                             />
+                          </div>
+
+                          {project.status === "cancelled" && (
+                            <div className="admin-projects__cancelled-project">
+                              Proyecto cancelado
+                            </div>
+                          )}
+
+                          <div
+                            className={`admin-projects__status-stepper ${
+                              project.status === "cancelled"
+                                ? "is-cancelled"
+                                : ""
+                            }`}
+                          >
+                            {projectStatusSteps.map((status, index) => {
+                              const currentStatusIndex = getProjectStatusIndex(
+                                project.status,
+                              );
+
+                              const isCompleted =
+                                currentStatusIndex !== -1 &&
+                                index < currentStatusIndex;
+
+                              const isCurrent = status === project.status;
+
+                              return (
+                                <div
+                                  className={`admin-projects__status-step ${
+                                    isCompleted ? "is-completed" : ""
+                                  } ${isCurrent ? "is-current" : ""}`}
+                                  key={status}
+                                >
+                                  <div className="admin-projects__status-step-marker">
+                                    {isCompleted ? "✓" : index + 1}
+                                  </div>
+
+                                  <span>{statusLabels[status] || status}</span>
+                                </div>
+                              );
+                            })}
                           </div>
 
                           <div className="admin-projects__project-toggle">
