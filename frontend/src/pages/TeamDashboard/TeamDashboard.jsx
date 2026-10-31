@@ -700,6 +700,19 @@ function TeamDashboard() {
                                   {sourceLabels[deliverable.source] ||
                                     deliverable.source}
                                 </span>
+                                <span>
+                                  Estado:{" "}
+                                  <strong>
+                                    {deliverable.status === "approved"
+                                      ? "Aprobado"
+                                      : deliverable.status ===
+                                          "changes_requested"
+                                        ? "Cambios solicitados"
+                                        : deliverable.status === "draft"
+                                          ? "Borrador"
+                                          : "Pendiente de revisión"}
+                                  </strong>
+                                </span>
                               </div>
 
                               <a
@@ -709,6 +722,13 @@ function TeamDashboard() {
                               >
                                 Abrir entregable
                               </a>
+
+                              {deliverable.reviewMessage && (
+                                <p className="team-dashboard__deliverable-review-message">
+                                  <strong>Comentarios de revisión:</strong>{" "}
+                                  {deliverable.reviewMessage}
+                                </p>
+                              )}
 
                               <small>
                                 Agregado por{" "}

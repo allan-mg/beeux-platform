@@ -192,3 +192,29 @@ export const toggleTaskArchive = ({ token, taskId, isArchived }) =>
 
     return data;
   });
+
+export const reviewTaskDeliverable = ({
+  token,
+  deliverableId,
+  decision,
+  reviewMessage = "",
+}) =>
+  fetch(`${API_BASE_URL}/admin/deliverables/${deliverableId}/review`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      decision,
+      reviewMessage,
+    }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

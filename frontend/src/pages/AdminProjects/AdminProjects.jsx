@@ -20,6 +20,7 @@ import {
   addTaskComment,
   getTaskDeliverables,
   toggleTaskArchive,
+  reviewTaskDeliverable,
 } from "../../api/tasksApi";
 
 import "./AdminProjects.css";
@@ -142,6 +143,13 @@ function AdminProjects() {
   const [projectAssigneeFilter, setProjectAssigneeFilter] = useState("all");
 
   const [projectViewMode, setProjectViewMode] = useState("clients");
+  const [reviewingDeliverableId, setReviewingDeliverableId] = useState(null);
+
+  const [deliverableChangesId, setDeliverableChangesId] = useState(null);
+
+  const [deliverableReviewMessages, setDeliverableReviewMessages] = useState(
+    {},
+  );
 
   useEffect(() => {
     if (!successMessage) {
@@ -949,6 +957,65 @@ function AdminProjects() {
       })
       .finally(() => {
         setUpdatingTaskId(null);
+      });
+  };
+
+  const handleDeliverableReview = (taskId, deliverableId, decision) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    const reviewMessage =
+      deliverableReviewMessages[deliverableId]?.trim() || "";
+
+    if (decision === "changes" && !reviewMessage) {
+      setErrorMessage("Escribe qué cambios debe realizar el responsable.");
+      return;
+    }
+
+    setReviewingDeliverableId(deliverableId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    reviewTaskDeliverable({
+      token,
+      deliverableId,
+      decision,
+      reviewMessage,
+    })
+      .then((updatedDeliverable) => {
+        setTaskDeliverablesById((currentDeliverables) => ({
+          ...currentDeliverables,
+          [taskId]: (currentDeliverables[taskId] || []).map((deliverable) =>
+            deliverable._id === updatedDeliverable._id
+              ? updatedDeliverable
+              : deliverable,
+          ),
+        }));
+
+        setDeliverableChangesId(null);
+
+        setDeliverableReviewMessages((currentMessages) => ({
+          ...currentMessages,
+          [deliverableId]: "",
+        }));
+
+        setSuccessMessage(
+          decision === "approve"
+            ? "El entregable fue aprobado correctamente."
+            : "Los cambios se solicitaron correctamente.",
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message || "No se pudo actualizar la revisión del entregable.",
+        );
+      })
+      .finally(() => {
+        setReviewingDeliverableId(null);
       });
   };
 
@@ -1835,6 +1902,22 @@ function AdminProjects() {
                                                               ] ||
                                                                 deliverable.source}
                                                             </span>
+
+                                                            <span>
+                                                              Estado:{" "}
+                                                              <strong>
+                                                                {deliverable.status ===
+                                                                "approved"
+                                                                  ? "Aprobado"
+                                                                  : deliverable.status ===
+                                                                      "changes_requested"
+                                                                    ? "Cambios solicitados"
+                                                                    : deliverable.status ===
+                                                                        "draft"
+                                                                      ? "Borrador"
+                                                                      : "Pendiente de revisión"}
+                                                              </strong>
+                                                            </span>
                                                           </div>
 
                                                           <a
@@ -1858,6 +1941,134 @@ function AdminProjects() {
                                                                     ? "Abrir archivo"
                                                                     : "Abrir enlace"}
                                                           </a>
+
+                                                          {deliverable.status ===
+                                                            "submitted" && (
+                                                            <div className="admin-projects__deliverable-review-actions">
+                                                              <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                  setDeliverableChangesId(
+                                                                    deliverable._id,
+                                                                  )
+                                                                }
+                                                                disabled={
+                                                                  reviewingDeliverableId ===
+                                                                  deliverable._id
+                                                                }
+                                                              >
+                                                                Solicitar
+                                                                cambios
+                                                              </button>
+
+                                                              <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                  handleDeliverableReview(
+                                                                    task._id,
+                                                                    deliverable._id,
+                                                                    "approve",
+                                                                  )
+                                                                }
+                                                                disabled={
+                                                                  reviewingDeliverableId ===
+                                                                  deliverable._id
+                                                                }
+                                                              >
+                                                                {reviewingDeliverableId ===
+                                                                deliverable._id
+                                                                  ? "Procesando..."
+                                                                  : "Aprobar entregable"}
+                                                              </button>
+                                                            </div>
+                                                          )}
+
+                                                          {deliverableChangesId ===
+                                                            deliverable._id && (
+                                                            <div className="admin-projects__deliverable-changes-form">
+                                                              <label>
+                                                                <span>
+                                                                  ¿Qué debe
+                                                                  corregirse?
+                                                                </span>
+
+                                                                <textarea
+                                                                  rows="3"
+                                                                  value={
+                                                                    deliverableReviewMessages[
+                                                                      deliverable
+                                                                        ._id
+                                                                    ] || ""
+                                                                  }
+                                                                  onChange={(
+                                                                    event,
+                                                                  ) =>
+                                                                    setDeliverableReviewMessages(
+                                                                      (
+                                                                        currentMessages,
+                                                                      ) => ({
+                                                                        ...currentMessages,
+                                                                        [deliverable._id]:
+                                                                          event
+                                                                            .target
+                                                                            .value,
+                                                                      }),
+                                                                    )
+                                                                  }
+                                                                  placeholder="Describe claramente los cambios que debe realizar el responsable..."
+                                                                />
+                                                              </label>
+
+                                                              <div>
+                                                                <button
+                                                                  type="button"
+                                                                  onClick={() =>
+                                                                    setDeliverableChangesId(
+                                                                      null,
+                                                                    )
+                                                                  }
+                                                                  disabled={
+                                                                    reviewingDeliverableId ===
+                                                                    deliverable._id
+                                                                  }
+                                                                >
+                                                                  Volver
+                                                                </button>
+
+                                                                <button
+                                                                  type="button"
+                                                                  onClick={() =>
+                                                                    handleDeliverableReview(
+                                                                      task._id,
+                                                                      deliverable._id,
+                                                                      "changes",
+                                                                    )
+                                                                  }
+                                                                  disabled={
+                                                                    reviewingDeliverableId ===
+                                                                    deliverable._id
+                                                                  }
+                                                                >
+                                                                  {reviewingDeliverableId ===
+                                                                  deliverable._id
+                                                                    ? "Enviando..."
+                                                                    : "Enviar solicitud"}
+                                                                </button>
+                                                              </div>
+                                                            </div>
+                                                          )}
+
+                                                          {deliverable.reviewMessage && (
+                                                            <p className="admin-projects__deliverable-review-message">
+                                                              <strong>
+                                                                Comentarios de
+                                                                revisión:
+                                                              </strong>{" "}
+                                                              {
+                                                                deliverable.reviewMessage
+                                                              }
+                                                            </p>
+                                                          )}
 
                                                           <small>
                                                             Agregado por{" "}

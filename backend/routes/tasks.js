@@ -12,6 +12,7 @@ const {
   addMyTaskDeliverable,
   getTaskDeliverables,
   toggleTaskArchive,
+  reviewTaskDeliverable,
 } = require("../controllers/tasks");
 
 const auth = require("../middlewares/auth");
@@ -115,6 +116,14 @@ router.patch(
   admin,
   validateObjectId("taskId"),
   toggleTaskArchive,
+);
+
+router.patch(
+  "/admin/deliverables/:deliverableId/review",
+  auth,
+  admin,
+  validateObjectId("deliverableId"),
+  reviewTaskDeliverable,
 );
 
 module.exports = router;

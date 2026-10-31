@@ -88,6 +88,23 @@ const taskDeliverableSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
+
+    reviewMessage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   {
     timestamps: true,

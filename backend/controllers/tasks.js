@@ -443,7 +443,6 @@ const addMyTaskDeliverable = async (req, res, next) => {
       source = "external",
       externalId = "",
       externalUrl = "",
-      clientVisible = false,
     } = req.body;
 
     if (!name?.trim()) {
@@ -488,7 +487,7 @@ const addMyTaskDeliverable = async (req, res, next) => {
       url: url.trim(),
       externalId: externalId.trim(),
       externalUrl: externalUrl.trim(),
-      clientVisible,
+      clientVisible: false,
       status: "submitted",
     });
 
@@ -546,6 +545,66 @@ const getTaskDeliverables = async (req, res, next) => {
   }
 };
 
+const reviewTaskDeliverable = async (req, res, next) => {
+  try {
+    const { deliverableId } = req.params;
+    const { decision, reviewMessage = "" } = req.body;
+
+    if (!["approve", "changes"].includes(decision)) {
+      return res.status(400).send({
+        message: "La decisión de revisión no es válida.",
+      });
+    }
+
+    if (decision === "changes" && !reviewMessage.trim()) {
+      return res.status(400).send({
+        message: "Escribe qué cambios debe realizar el responsable.",
+      });
+    }
+
+    const deliverable = await TaskDeliverable.findById(deliverableId);
+
+    if (!deliverable) {
+      return res.status(404).send({
+        message: "No se encontró el entregable.",
+      });
+    }
+
+    const task = await Task.findById(deliverable.task);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea asociada.",
+      });
+    }
+
+    if (task.status === "cancelled") {
+      return res.status(400).send({
+        message: "No se pueden revisar entregables de una tarea cancelada.",
+      });
+    }
+
+    deliverable.status =
+      decision === "approve" ? "approved" : "changes_requested";
+
+    deliverable.reviewedBy = req.user._id;
+    deliverable.reviewedAt = new Date();
+
+    deliverable.reviewMessage =
+      decision === "changes" ? reviewMessage.trim() : "";
+
+    await deliverable.save();
+
+    const populatedDeliverable = await TaskDeliverable.findById(deliverable._id)
+      .populate("uploadedBy", "name email")
+      .populate("reviewedBy", "name email role");
+
+    return res.send(populatedDeliverable);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const toggleTaskArchive = async (req, res, next) => {
   try {
     const { taskId } = req.params;
@@ -585,4 +644,5 @@ module.exports = {
   addMyTaskDeliverable,
   getTaskDeliverables,
   toggleTaskArchive,
+  reviewTaskDeliverable,
 };

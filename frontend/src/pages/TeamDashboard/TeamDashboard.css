@@ -576,6 +576,36 @@
   font-size: 12px;
 }
 
+.team-dashboard__deliverable-item > div > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 4px;
+
+  color: var(--beeux-navy);
+
+  font-size: 13px;
+}
+
+.team-dashboard__deliverable-review-message {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+
+  border-left: 3px solid var(--beeux-yellow);
+  border-radius: 6px;
+
+  background-color: #fffaf0;
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.team-dashboard__deliverable-review-message strong {
+  font-weight: 700;
+}
+
 @media screen and (max-width: 900px) {
   .team-dashboard__deliverable-form {
     grid-template-columns: 1fr;
