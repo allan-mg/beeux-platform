@@ -1,5 +1,6 @@
 const Project = require("../models/project");
 const User = require("../models/user");
+const TaskDeliverable = require("../models/taskDeliverable");
 
 const projectProgressByStatus = {
   brief_received: 10,
@@ -44,6 +45,36 @@ const getProjectById = async (req, res, next) => {
     res.send(project);
   } catch (error) {
     next(error);
+  }
+};
+
+const getProjectDeliverables = async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await Project.findOne({
+      _id: projectId,
+      user: req.user._id,
+    });
+
+    if (!project) {
+      return res.status(404).send({
+        message: "No se encontró el proyecto.",
+      });
+    }
+
+    const deliverables = await TaskDeliverable.find({
+      project: project._id,
+      status: "approved",
+      clientVisible: true,
+    })
+      .populate("uploadedBy", "name")
+      .populate("reviewedBy", "name")
+      .sort({ createdAt: -1 });
+
+    return res.send(deliverables);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -168,10 +199,75 @@ const updateProjectAssignee = async (req, res, next) => {
   }
 };
 
+const reviewProjectDeliverable = async (req, res, next) => {
+  try {
+    const { projectId, deliverableId } = req.params;
+    const { decision, reviewMessage = "" } = req.body;
+
+    if (!["approve", "changes"].includes(decision)) {
+      return res.status(400).send({
+        message: "La decisión de revisión no es válida.",
+      });
+    }
+
+    if (decision === "changes" && !reviewMessage.trim()) {
+      return res.status(400).send({
+        message: "Describe los cambios que necesitas.",
+      });
+    }
+
+    const project = await Project.findOne({
+      _id: projectId,
+      user: req.user._id,
+    });
+
+    if (!project) {
+      return res.status(404).send({
+        message: "No se encontró el proyecto.",
+      });
+    }
+
+    const deliverable = await TaskDeliverable.findOne({
+      _id: deliverableId,
+      project: project._id,
+      status: "approved",
+      clientVisible: true,
+    });
+
+    if (!deliverable) {
+      return res.status(404).send({
+        message: "No se encontró el entregable.",
+      });
+    }
+
+    deliverable.clientReviewStatus =
+      decision === "approve" ? "approved" : "changes_requested";
+
+    deliverable.clientReviewMessage =
+      decision === "changes" ? reviewMessage.trim() : "";
+
+    deliverable.clientReviewedBy = req.user._id;
+    deliverable.clientReviewedAt = new Date();
+
+    await deliverable.save();
+
+    const updatedDeliverable = await TaskDeliverable.findById(deliverable._id)
+      .populate("uploadedBy", "name")
+      .populate("reviewedBy", "name")
+      .populate("clientReviewedBy", "name");
+
+    return res.send(updatedDeliverable);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getMyProjects,
   getProjectById,
   getAllProjects,
   updateProjectStatus,
   updateProjectAssignee,
+  getProjectDeliverables,
+  reviewProjectDeliverable,
 };

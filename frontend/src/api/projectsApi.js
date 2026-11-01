@@ -30,6 +30,21 @@ export const getProjectById = ({ token, projectId }) =>
     return data;
   });
 
+export const getProjectDeliverables = ({ token, projectId }) =>
+  fetch(`${API_BASE_URL}/projects/${projectId}/deliverables`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
+
 export const updateProjectStatus = ({ token, projectId, status }) =>
   fetch(`${API_BASE_URL}/admin/projects/${projectId}/status`, {
     method: "PATCH",
@@ -76,6 +91,36 @@ export const updateProjectAssignee = ({ token, projectId, assignedTo }) =>
       assignedTo,
     }),
   }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
+
+export const reviewProjectDeliverable = ({
+  token,
+  projectId,
+  deliverableId,
+  decision,
+  reviewMessage = "",
+}) =>
+  fetch(
+    `${API_BASE_URL}/projects/${projectId}/deliverables/${deliverableId}/review`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        decision,
+        reviewMessage,
+      }),
+    },
+  ).then(async (res) => {
     const data = await res.json();
 
     if (!res.ok) {

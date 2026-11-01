@@ -1601,6 +1601,96 @@
   line-height: 1.5;
 }
 
+.admin-projects__deliverable-client-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-top: 12px;
+  padding: 12px 14px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+
+  background-color: #f8fafc;
+}
+
+.admin-projects__deliverable-client-actions span {
+  color: #667085;
+
+  font-size: 13px;
+}
+
+.admin-projects__deliverable-client-actions strong {
+  color: var(--beeux-navy);
+}
+
+.admin-projects__deliverable-client-actions button {
+  min-height: 38px;
+  padding: 8px 14px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.admin-projects__deliverable-client-actions button:hover {
+  opacity: 0.9;
+}
+
+.admin-projects__deliverable-client-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-projects__client-review-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.admin-projects__client-review-status span {
+  color: #475569;
+  font-size: 14px;
+}
+
+.admin-projects__client-review-status strong {
+  color: #1e2937;
+}
+
+.admin-projects__client-review-status small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.admin-projects__client-review-message {
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid #f9cb10;
+  border-radius: 8px;
+  background: #fff8dc;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.admin-projects__client-review-message strong {
+  color: #1e2937;
+}
+
 /* RESPONSIVE */
 
 @media screen and (max-width: 900px) {
@@ -1610,6 +1700,15 @@
 
   .admin-projects__task-activity {
     grid-column: auto;
+  }
+
+  .admin-projects__deliverable-client-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-projects__deliverable-client-actions button {
+    width: 100%;
   }
 }
 

@@ -6,6 +6,8 @@ const {
   getAllProjects,
   updateProjectStatus,
   updateProjectAssignee,
+  getProjectDeliverables,
+  reviewProjectDeliverable,
 } = require("../controllers/projects");
 
 const auth = require("../middlewares/auth");
@@ -19,6 +21,13 @@ router.get(
   auth,
   validateObjectId("projectId"),
   getProjectById,
+);
+
+router.get(
+  "/projects/:projectId/deliverables",
+  auth,
+  validateObjectId("projectId"),
+  getProjectDeliverables,
 );
 
 router.get("/admin/projects", auth, admin, getAllProjects);
@@ -37,6 +46,14 @@ router.patch(
   admin,
   validateObjectId("projectId"),
   updateProjectAssignee,
+);
+
+router.patch(
+  "/projects/:projectId/deliverables/:deliverableId/review",
+  auth,
+  validateObjectId("projectId"),
+  validateObjectId("deliverableId"),
+  reviewProjectDeliverable,
 );
 
 module.exports = router;

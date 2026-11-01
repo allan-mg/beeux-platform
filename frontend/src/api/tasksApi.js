@@ -218,3 +218,27 @@ export const reviewTaskDeliverable = ({
 
     return data;
   });
+
+export const updateDeliverableVisibility = ({
+  token,
+  deliverableId,
+  clientVisible,
+}) =>
+  fetch(`${API_BASE_URL}/admin/deliverables/${deliverableId}/visibility`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      clientVisible,
+    }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

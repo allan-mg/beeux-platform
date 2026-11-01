@@ -605,6 +605,45 @@ const reviewTaskDeliverable = async (req, res, next) => {
   }
 };
 
+const updateDeliverableVisibility = async (req, res, next) => {
+  try {
+    const { deliverableId } = req.params;
+    const { clientVisible } = req.body;
+
+    if (typeof clientVisible !== "boolean") {
+      return res.status(400).send({
+        message: "La visibilidad del entregable no es válida.",
+      });
+    }
+
+    const deliverable = await TaskDeliverable.findById(deliverableId);
+
+    if (!deliverable) {
+      return res.status(404).send({
+        message: "No se encontró el entregable.",
+      });
+    }
+
+    if (clientVisible && deliverable.status !== "approved") {
+      return res.status(400).send({
+        message: "Solo se pueden publicar al cliente entregables aprobados.",
+      });
+    }
+
+    deliverable.clientVisible = clientVisible;
+
+    await deliverable.save();
+
+    const populatedDeliverable = await TaskDeliverable.findById(deliverable._id)
+      .populate("uploadedBy", "name email")
+      .populate("reviewedBy", "name email role");
+
+    return res.send(populatedDeliverable);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const toggleTaskArchive = async (req, res, next) => {
   try {
     const { taskId } = req.params;
@@ -645,4 +684,5 @@ module.exports = {
   getTaskDeliverables,
   toggleTaskArchive,
   reviewTaskDeliverable,
+  updateDeliverableVisibility,
 };

@@ -21,6 +21,7 @@ import {
   getTaskDeliverables,
   toggleTaskArchive,
   reviewTaskDeliverable,
+  updateDeliverableVisibility,
 } from "../../api/tasksApi";
 
 import "./AdminProjects.css";
@@ -150,6 +151,9 @@ function AdminProjects() {
   const [deliverableReviewMessages, setDeliverableReviewMessages] = useState(
     {},
   );
+
+  const [updatingDeliverableVisibilityId, setUpdatingDeliverableVisibilityId] =
+    useState(null);
 
   useEffect(() => {
     if (!successMessage) {
@@ -1016,6 +1020,54 @@ function AdminProjects() {
       })
       .finally(() => {
         setReviewingDeliverableId(null);
+      });
+  };
+
+  const handleDeliverableVisibility = (
+    taskId,
+    deliverableId,
+    clientVisible,
+  ) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    setUpdatingDeliverableVisibilityId(deliverableId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    updateDeliverableVisibility({
+      token,
+      deliverableId,
+      clientVisible,
+    })
+      .then((updatedDeliverable) => {
+        setTaskDeliverablesById((currentDeliverables) => ({
+          ...currentDeliverables,
+          [taskId]: (currentDeliverables[taskId] || []).map((deliverable) =>
+            deliverable._id === updatedDeliverable._id
+              ? updatedDeliverable
+              : deliverable,
+          ),
+        }));
+
+        setSuccessMessage(
+          clientVisible
+            ? "El entregable fue publicado para el cliente."
+            : "El entregable fue retirado del portal del cliente.",
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message ||
+            "No se pudo actualizar la visibilidad del entregable.",
+        );
+      })
+      .finally(() => {
+        setUpdatingDeliverableVisibilityId(null);
       });
   };
 
@@ -1919,6 +1971,87 @@ function AdminProjects() {
                                                               </strong>
                                                             </span>
                                                           </div>
+
+                                                          {deliverable.status ===
+                                                            "approved" && (
+                                                            <>
+                                                              <div className="admin-projects__deliverable-client-actions">
+                                                                <span>
+                                                                  Cliente:{" "}
+                                                                  <strong>
+                                                                    {deliverable.clientVisible
+                                                                      ? "Visible"
+                                                                      : "Interno"}
+                                                                  </strong>
+                                                                </span>
+
+                                                                <button
+                                                                  type="button"
+                                                                  onClick={() =>
+                                                                    handleDeliverableVisibility(
+                                                                      task._id,
+                                                                      deliverable._id,
+                                                                      !deliverable.clientVisible,
+                                                                    )
+                                                                  }
+                                                                  disabled={
+                                                                    updatingDeliverableVisibilityId ===
+                                                                    deliverable._id
+                                                                  }
+                                                                >
+                                                                  {updatingDeliverableVisibilityId ===
+                                                                  deliverable._id
+                                                                    ? "Actualizando..."
+                                                                    : deliverable.clientVisible
+                                                                      ? "Retirar del cliente"
+                                                                      : "Publicar para cliente"}
+                                                                </button>
+                                                              </div>
+
+                                                              {deliverable.clientVisible && (
+                                                                <div className="admin-projects__client-review-status">
+                                                                  <span>
+                                                                    Revisión del
+                                                                    cliente:{" "}
+                                                                    <strong>
+                                                                      {deliverable.clientReviewStatus ===
+                                                                      "approved"
+                                                                        ? "Aprobado"
+                                                                        : deliverable.clientReviewStatus ===
+                                                                            "changes_requested"
+                                                                          ? "Cambios solicitados"
+                                                                          : "Pendiente"}
+                                                                    </strong>
+                                                                  </span>
+
+                                                                  {deliverable.clientReviewedAt && (
+                                                                    <small>
+                                                                      Revisado
+                                                                      el{" "}
+                                                                      {new Date(
+                                                                        deliverable.clientReviewedAt,
+                                                                      ).toLocaleString(
+                                                                        "es-MX",
+                                                                      )}
+                                                                    </small>
+                                                                  )}
+
+                                                                  {deliverable.clientReviewMessage && (
+                                                                    <p className="admin-projects__client-review-message">
+                                                                      <strong>
+                                                                        Comentarios
+                                                                        del
+                                                                        cliente:
+                                                                      </strong>{" "}
+                                                                      {
+                                                                        deliverable.clientReviewMessage
+                                                                      }
+                                                                    </p>
+                                                                  )}
+                                                                </div>
+                                                              )}
+                                                            </>
+                                                          )}
 
                                                           <a
                                                             href={

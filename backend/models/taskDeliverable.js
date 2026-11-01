@@ -105,6 +105,29 @@ const taskDeliverableSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+
+    clientReviewStatus: {
+      type: String,
+      enum: ["pending", "approved", "changes_requested"],
+      default: "pending",
+    },
+
+    clientReviewMessage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    clientReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    clientReviewedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

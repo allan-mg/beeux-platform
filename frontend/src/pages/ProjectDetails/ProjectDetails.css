@@ -182,6 +182,234 @@
   color: #ffffff;
 }
 
+.project-details__deliverables {
+  margin-top: 20px;
+  padding: 24px;
+
+  border-radius: 16px;
+
+  background-color: #ffffff;
+
+  box-shadow: 0 8px 24px rgba(30, 41, 55, 0.08);
+}
+
+.project-details__section-header {
+  margin-bottom: 20px;
+}
+
+.project-details__section-header > span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: var(--beeux-yellow);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-details__section-header h2 {
+  margin: 0;
+
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 24px;
+}
+
+.project-details__deliverables-empty {
+  margin: 0;
+
+  color: #667085;
+}
+
+.project-details__deliverables-list {
+  display: grid;
+  gap: 14px;
+}
+
+.project-details__deliverable-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 18px 20px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+
+  background-color: #ffffff;
+}
+
+.project-details__deliverable-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.project-details__deliverable-source {
+  color: var(--beeux-yellow);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-details__deliverable-card h3 {
+  margin: 0;
+
+  color: var(--beeux-navy);
+  font-size: 18px;
+}
+
+.project-details__deliverable-card small {
+  color: #667085;
+  font-size: 13px;
+}
+
+.project-details__deliverable-card a {
+  flex-shrink: 0;
+
+  padding: 10px 16px;
+
+  border-radius: 9px;
+
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.project-details__deliverable-review {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.project-details__deliverable-review > span {
+  color: #667085;
+
+  font-size: 14px;
+}
+
+.project-details__deliverable-review > span strong {
+  color: var(--beeux-navy);
+}
+
+.project-details__deliverable-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-details__deliverable-review-actions button {
+  min-height: 40px;
+  padding: 9px 14px;
+
+  border: 0;
+  border-radius: 8px;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.project-details__review-changes {
+  background-color: #fff3cd;
+  color: #7a5b00;
+}
+
+.project-details__review-approve {
+  background-color: #e7f6ec;
+  color: #23683d;
+}
+
+.project-details__changes-form {
+  grid-column: 1 / -1;
+
+  margin-top: 14px;
+  padding: 16px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+
+  background-color: #f8fafc;
+}
+
+.project-details__changes-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-details__changes-form label > span {
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.project-details__changes-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+
+  border: 1px solid #d7dce2;
+  border-radius: 8px;
+
+  font: inherit;
+
+  resize: vertical;
+}
+
+.project-details__changes-actions {
+  display: flex;
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+.project-details__changes-actions button {
+  min-height: 40px;
+  padding: 8px 14px;
+
+  border: 0;
+  border-radius: 8px;
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.project-details__changes-actions button:first-child {
+  background-color: #eef0f3;
+  color: var(--beeux-navy);
+}
+
+.project-details__changes-actions button:last-child {
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+}
+
+.project-details__client-review-message {
+  grid-column: 1 / -1;
+
+  margin: 12px 0 0;
+  padding: 12px;
+
+  border-left: 3px solid var(--beeux-yellow);
+  border-radius: 6px;
+
+  background-color: #fffaf0;
+  color: var(--beeux-navy);
+}
+
 @media screen and (max-width: 700px) {
   .project-details__summary,
   .project-details__info {
@@ -199,5 +427,29 @@
 
   .project-details__actions {
     flex-direction: column;
+  }
+
+  .project-details__deliverables {
+    padding: 20px;
+  }
+
+  .project-details__deliverable-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-details__deliverable-card a {
+    width: 100%;
+    text-align: center;
+  }
+
+  .project-details__deliverable-review-actions,
+  .project-details__changes-actions {
+    flex-direction: column;
+  }
+
+  .project-details__deliverable-review-actions button,
+  .project-details__changes-actions button {
+    width: 100%;
   }
 }
