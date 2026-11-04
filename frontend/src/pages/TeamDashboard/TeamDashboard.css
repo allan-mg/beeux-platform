@@ -606,6 +606,56 @@
   font-weight: 700;
 }
 
+.team-dashboard__client-review {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  grid-column: 1 / -1;
+
+  margin-top: 8px;
+  padding: 12px 14px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+
+  background-color: #f8fafc;
+}
+
+.team-dashboard__client-review span {
+  color: #475467;
+
+  font-size: 13px;
+}
+
+.team-dashboard__client-review strong {
+  color: var(--beeux-navy);
+}
+
+.team-dashboard__client-review small {
+  color: #7b8491;
+
+  font-size: 12px;
+}
+
+.team-dashboard__client-review-message {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+
+  border-left: 3px solid var(--beeux-yellow);
+  border-radius: 7px;
+
+  background-color: #fff8dc;
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.team-dashboard__client-review-message strong {
+  font-weight: 700;
+}
+
 @media screen and (max-width: 900px) {
   .team-dashboard__deliverable-form {
     grid-template-columns: 1fr;

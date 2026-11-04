@@ -730,6 +730,39 @@ function TeamDashboard() {
                                 </p>
                               )}
 
+                              {deliverable.clientVisible && (
+                                <div className="team-dashboard__client-review">
+                                  <span>
+                                    Revisión del cliente:{" "}
+                                    <strong>
+                                      {deliverable.clientReviewStatus ===
+                                      "approved"
+                                        ? "Aprobado"
+                                        : deliverable.clientReviewStatus ===
+                                            "changes_requested"
+                                          ? "Cambios solicitados"
+                                          : "Pendiente"}
+                                    </strong>
+                                  </span>
+
+                                  {deliverable.clientReviewedAt && (
+                                    <small>
+                                      Revisado el{" "}
+                                      {new Date(
+                                        deliverable.clientReviewedAt,
+                                      ).toLocaleString("es-MX")}
+                                    </small>
+                                  )}
+
+                                  {deliverable.clientReviewMessage && (
+                                    <p className="team-dashboard__client-review-message">
+                                      <strong>Comentarios del cliente:</strong>{" "}
+                                      {deliverable.clientReviewMessage}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
                               <small>
                                 Agregado por{" "}
                                 {deliverable.uploadedBy?.name ||

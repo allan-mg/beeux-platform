@@ -477,6 +477,19 @@ const addMyTaskDeliverable = async (req, res, next) => {
       });
     }
 
+    const latestDeliverable = await TaskDeliverable.findOne({
+      task: task._id,
+    })
+      .sort({ version: -1, createdAt: -1 })
+      .select("version");
+
+    const existingDeliverablesCount = await TaskDeliverable.countDocuments({
+      task: task._id,
+    });
+
+    const nextVersion =
+      Math.max(latestDeliverable?.version || 0, existingDeliverablesCount) + 1;
+
     const deliverable = await TaskDeliverable.create({
       task: task._id,
       project: task.project,
@@ -487,6 +500,7 @@ const addMyTaskDeliverable = async (req, res, next) => {
       url: url.trim(),
       externalId: externalId.trim(),
       externalUrl: externalUrl.trim(),
+      version: nextVersion,
       clientVisible: false,
       status: "submitted",
     });
@@ -628,6 +642,21 @@ const updateDeliverableVisibility = async (req, res, next) => {
       return res.status(400).send({
         message: "Solo se pueden publicar al cliente entregables aprobados.",
       });
+    }
+
+    if (clientVisible) {
+      await TaskDeliverable.updateMany(
+        {
+          task: deliverable.task,
+          _id: { $ne: deliverable._id },
+          clientVisible: true,
+        },
+        {
+          $set: {
+            clientVisible: false,
+          },
+        },
+      );
     }
 
     deliverable.clientVisible = clientVisible;

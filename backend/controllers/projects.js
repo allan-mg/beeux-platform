@@ -1,5 +1,7 @@
 const Project = require("../models/project");
 const User = require("../models/user");
+const Task = require("../models/task");
+const TaskActivity = require("../models/taskActivity");
 const TaskDeliverable = require("../models/taskDeliverable");
 
 const projectProgressByStatus = {
@@ -227,6 +229,12 @@ const reviewProjectDeliverable = async (req, res, next) => {
       });
     }
 
+    if (project.status === "cancelled") {
+      return res.status(400).send({
+        message: "No se pueden revisar entregables de un proyecto cancelado.",
+      });
+    }
+
     const deliverable = await TaskDeliverable.findOne({
       _id: deliverableId,
       project: project._id,
@@ -240,6 +248,29 @@ const reviewProjectDeliverable = async (req, res, next) => {
       });
     }
 
+    if (
+      deliverable.clientReviewStatus &&
+      deliverable.clientReviewStatus !== "pending"
+    ) {
+      return res.status(400).send({
+        message: "Este entregable ya fue revisado.",
+      });
+    }
+
+    const task = await Task.findById(deliverable.task);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea asociada al entregable.",
+      });
+    }
+
+    if (task.status === "cancelled") {
+      return res.status(400).send({
+        message: "No se puede revisar un entregable de una tarea cancelada.",
+      });
+    }
+
     deliverable.clientReviewStatus =
       decision === "approve" ? "approved" : "changes_requested";
 
@@ -250,6 +281,35 @@ const reviewProjectDeliverable = async (req, res, next) => {
     deliverable.clientReviewedAt = new Date();
 
     await deliverable.save();
+
+    if (decision === "changes") {
+      const previousTaskStatus = task.status;
+
+      task.status = "pending";
+      task.completedAt = null;
+
+      await task.save();
+
+      await TaskActivity.create({
+        task: task._id,
+        project: project._id,
+        user: req.user._id,
+        type: "changes_requested",
+        fromStatus: previousTaskStatus,
+        toStatus: "pending",
+        message: `El cliente solicitó cambios: ${reviewMessage.trim()}`,
+      });
+
+      project.status = "in_progress";
+      project.progress = projectProgressByStatus.in_progress;
+      project.deliveredAt = null;
+
+      if (!project.startedAt) {
+        project.startedAt = new Date();
+      }
+
+      await project.save();
+    }
 
     const updatedDeliverable = await TaskDeliverable.findById(deliverable._id)
       .populate("uploadedBy", "name")
