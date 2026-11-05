@@ -1336,19 +1336,79 @@
 }
 
 .admin-projects__visibility {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 
+  width: fit-content;
   margin-top: 16px;
 
-  color: #667085;
+  color: var(--beeux-navy);
 
   font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
 }
 
 .admin-projects__visibility input {
-  width: auto;
+  position: relative;
+
+  width: 44px;
+  height: 24px;
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+
+  background-color: #e2e8f0;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-projects__visibility input::before {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  background-color: #ffffff;
+
+  box-shadow: 0 1px 3px rgba(30, 41, 55, 0.25);
+
+  content: "";
+
+  transition: transform 0.2s ease;
+}
+
+.admin-projects__visibility input:checked {
+  border-color: var(--beeux-yellow);
+
+  background-color: var(--beeux-yellow);
+}
+
+.admin-projects__visibility input:checked::before {
+  transform: translateX(20px);
+}
+
+.admin-projects__visibility input:focus-visible {
+  outline: 3px solid rgba(249, 203, 16, 0.3);
+  outline-offset: 2px;
+}
+
+.admin-projects__visibility span {
+  user-select: none;
 }
 
 .admin-projects__create-task {
@@ -1703,6 +1763,54 @@
 
   font-size: 12px;
   font-weight: 700;
+}
+
+.admin-projects__client-changes-alert {
+  margin-top: 16px;
+  padding: 12px 14px;
+
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+
+  background-color: #fff8dc;
+  color: #92400e;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-projects__task-client-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin-top: 10px;
+  padding: 10px 12px;
+
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+
+  background-color: #fff8dc;
+  color: #1e2937;
+}
+
+.admin-projects__task-client-changes strong {
+  color: #92400e;
+}
+
+.admin-projects__task-client-changes span {
+  font-size: 13px;
+}
+
+.admin-projects__task-client-changes small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.admin-projects__task-edit .admin-projects__visibility,
+.admin-projects__task-form .admin-projects__visibility {
+  flex-direction: row;
+  align-items: center;
 }
 
 /* RESPONSIVE */

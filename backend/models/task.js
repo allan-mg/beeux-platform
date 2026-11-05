@@ -80,6 +80,22 @@ const taskSchema = new mongoose.Schema(
       default: false,
     },
 
+    clientChangesPending: {
+      type: Boolean,
+      default: false,
+    },
+
+    clientChangesMessage: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    clientChangesRequestedAt: {
+      type: Date,
+      default: null,
+    },
+
     order: {
       type: Number,
       default: 0,

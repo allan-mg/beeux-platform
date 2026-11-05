@@ -645,6 +645,34 @@
   font-weight: 700;
 }
 
+.team-dashboard__client-changes-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin-top: 10px;
+  padding: 10px 12px;
+
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+
+  background-color: #fff8dc;
+  color: #1e2937;
+}
+
+.team-dashboard__client-changes-alert strong {
+  color: #92400e;
+}
+
+.team-dashboard__client-changes-alert span {
+  font-size: 13px;
+}
+
+.team-dashboard__client-changes-alert small {
+  color: #64748b;
+  font-size: 12px;
+}
+
 @media screen and (max-width: 900px) {
   .team-dashboard__deliverable-form {
     grid-template-columns: 1fr;

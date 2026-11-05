@@ -410,6 +410,21 @@
   color: var(--beeux-navy);
 }
 
+.project-details__deliverable-version {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background-color: #fff8dc;
+  color: #1e2937;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
 @media screen and (max-width: 700px) {
   .project-details__summary,
   .project-details__info {

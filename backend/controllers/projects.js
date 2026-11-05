@@ -288,6 +288,10 @@ const reviewProjectDeliverable = async (req, res, next) => {
       task.status = "pending";
       task.completedAt = null;
 
+      task.clientChangesPending = true;
+      task.clientChangesMessage = reviewMessage.trim();
+      task.clientChangesRequestedAt = new Date();
+
       await task.save();
 
       await TaskActivity.create({
@@ -309,6 +313,12 @@ const reviewProjectDeliverable = async (req, res, next) => {
       }
 
       await project.save();
+    } else {
+      task.clientChangesPending = false;
+      task.clientChangesMessage = "";
+      task.clientChangesRequestedAt = null;
+
+      await task.save();
     }
 
     const updatedDeliverable = await TaskDeliverable.findById(deliverable._id)

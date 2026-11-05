@@ -324,6 +324,10 @@ function ProjectDetails() {
 
                       <h3>{deliverable.name}</h3>
 
+                      <span className="project-details__deliverable-version">
+                        Versión {deliverable.version || 1}
+                      </span>
+
                       <small>
                         Publicado el{" "}
                         {new Date(deliverable.updatedAt).toLocaleDateString(

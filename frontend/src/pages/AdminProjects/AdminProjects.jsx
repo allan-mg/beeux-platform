@@ -1305,6 +1305,10 @@ function AdminProjects() {
                     {clientProjects.map((project) => {
                       const projectTasks = tasksByProject[project._id] || [];
 
+                      const clientChangesCount = projectTasks.filter(
+                        (task) => task.clientChangesPending,
+                      ).length;
+
                       const taskCounts = {
                         active: projectTasks.filter(
                           (task) =>
@@ -1436,6 +1440,15 @@ function AdminProjects() {
                               }}
                             />
                           </div>
+
+                          {clientChangesCount > 0 && (
+                            <div className="admin-projects__client-changes-alert">
+                              ⚠ {clientChangesCount}{" "}
+                              {clientChangesCount === 1
+                                ? "tarea con cambios solicitados por el cliente"
+                                : "tareas con cambios solicitados por el cliente"}
+                            </div>
+                          )}
 
                           {project.status === "cancelled" && (
                             <div className="admin-projects__cancelled-project">
@@ -1706,6 +1719,34 @@ function AdminProjects() {
                                             <>
                                               <div>
                                                 <h4>{task.title}</h4>
+
+                                                {task.clientChangesPending && (
+                                                  <div className="admin-projects__task-client-changes">
+                                                    <strong>
+                                                      ⚠ Cambios solicitados por
+                                                      el cliente
+                                                    </strong>
+
+                                                    {task.clientChangesMessage && (
+                                                      <span>
+                                                        {
+                                                          task.clientChangesMessage
+                                                        }
+                                                      </span>
+                                                    )}
+
+                                                    {task.clientChangesRequestedAt && (
+                                                      <small>
+                                                        Solicitados el{" "}
+                                                        {new Date(
+                                                          task.clientChangesRequestedAt,
+                                                        ).toLocaleString(
+                                                          "es-MX",
+                                                        )}
+                                                      </small>
+                                                    )}
+                                                  </div>
+                                                )}
 
                                                 {task.description && (
                                                   <p>{task.description}</p>
@@ -2104,7 +2145,11 @@ function AdminProjects() {
                                                                 </button>
                                                               </div>
 
-                                                              {deliverable.clientVisible && (
+                                                              {(deliverable.clientVisible ||
+                                                                deliverable.clientReviewStatus ===
+                                                                  "approved" ||
+                                                                deliverable.clientReviewStatus ===
+                                                                  "changes_requested") && (
                                                                 <div className="admin-projects__client-review-status">
                                                                   <span>
                                                                     Revisión del

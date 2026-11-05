@@ -481,6 +481,25 @@ function TeamDashboard() {
 
                       <h2>{task.title}</h2>
 
+                      {task.clientChangesPending && (
+                        <div className="team-dashboard__client-changes-alert">
+                          <strong>⚠ Cambios solicitados por el cliente</strong>
+
+                          {task.clientChangesMessage && (
+                            <span>{task.clientChangesMessage}</span>
+                          )}
+
+                          {task.clientChangesRequestedAt && (
+                            <small>
+                              Solicitados el{" "}
+                              {new Date(
+                                task.clientChangesRequestedAt,
+                              ).toLocaleString("es-MX")}
+                            </small>
+                          )}
+                        </div>
+                      )}
+
                       {task.description && <p>{task.description}</p>}
                     </div>
 
@@ -734,7 +753,10 @@ function TeamDashboard() {
                                 </p>
                               )}
 
-                              {deliverable.clientVisible && (
+                              {(deliverable.clientVisible ||
+                                deliverable.clientReviewStatus === "approved" ||
+                                deliverable.clientReviewStatus ===
+                                  "changes_requested") && (
                                 <div className="team-dashboard__client-review">
                                   <span>
                                     Revisión del cliente:{" "}
