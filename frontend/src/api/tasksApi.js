@@ -242,3 +242,19 @@ export const updateDeliverableVisibility = ({
 
     return data;
   });
+
+export const deleteTask = ({ token, taskId }) =>
+  fetch(`${API_BASE_URL}/admin/tasks/${taskId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(new Error(data.message || `Error: ${res.status}`));
+    }
+
+    return data;
+  });

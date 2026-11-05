@@ -22,6 +22,7 @@ import {
   toggleTaskArchive,
   reviewTaskDeliverable,
   updateDeliverableVisibility,
+  deleteTask,
 } from "../../api/tasksApi";
 
 import "./AdminProjects.css";
@@ -133,7 +134,10 @@ function AdminProjects() {
 
   const [cancelTaskModal, setCancelTaskModal] = useState(null);
 
-  const [taskFilter, setTaskFilter] = useState("active");
+  const [deleteTaskModal, setDeleteTaskModal] = useState(null);
+  const [deletingTaskId, setDeletingTaskId] = useState(null);
+
+  const [taskFilter, setTaskFilter] = useState("all");
 
   const [expandedProjects, setExpandedProjects] = useState({});
 
@@ -572,6 +576,72 @@ function AdminProjects() {
       })
       .finally(() => {
         setUpdatingTaskId(null);
+      });
+  };
+
+  const handleDeleteTask = (projectId, taskId) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    setDeletingTaskId(taskId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    deleteTask({
+      token,
+      taskId,
+    })
+      .then(() => {
+        setTasksByProject((currentTasks) => ({
+          ...currentTasks,
+          [projectId]: (currentTasks[projectId] || []).filter(
+            (task) => task._id !== taskId,
+          ),
+        }));
+
+        setTaskActivityById((currentActivity) => {
+          const updatedActivity = {
+            ...currentActivity,
+          };
+
+          delete updatedActivity[taskId];
+
+          return updatedActivity;
+        });
+
+        setTaskDeliverablesById((currentDeliverables) => {
+          const updatedDeliverables = {
+            ...currentDeliverables,
+          };
+
+          delete updatedDeliverables[taskId];
+
+          return updatedDeliverables;
+        });
+
+        setOpenActivityTaskId((currentTaskId) =>
+          currentTaskId === taskId ? null : currentTaskId,
+        );
+
+        setOpenDeliverablesTaskId((currentTaskId) =>
+          currentTaskId === taskId ? null : currentTaskId,
+        );
+
+        setDeleteTaskModal(null);
+
+        setSuccessMessage(
+          "La tarea y sus datos relacionados fueron eliminados definitivamente.",
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(error.message || "No se pudo eliminar la tarea.");
+      })
+      .finally(() => {
+        setDeletingTaskId(null);
       });
   };
 
@@ -1529,6 +1599,16 @@ function AdminProjects() {
                                   <button
                                     type="button"
                                     className={
+                                      taskFilter === "all" ? "is-active" : ""
+                                    }
+                                    onClick={() => setTaskFilter("all")}
+                                  >
+                                    Todas ({taskCounts.all})
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className={
                                       taskFilter === "active" ? "is-active" : ""
                                     }
                                     onClick={() => setTaskFilter("active")}
@@ -1580,16 +1660,6 @@ function AdminProjects() {
                                     onClick={() => setTaskFilter("archived")}
                                   >
                                     Archivadas ({taskCounts.archived})
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    className={
-                                      taskFilter === "all" ? "is-active" : ""
-                                    }
-                                    onClick={() => setTaskFilter("all")}
-                                  >
-                                    Todas ({taskCounts.all})
                                   </button>
                                 </div>
 
@@ -1916,6 +1986,26 @@ function AdminProjects() {
                                                       ? "Cancelada"
                                                       : "Cancelar"}
                                                   </button>
+
+                                                  <button
+                                                    type="button"
+                                                    className="admin-projects__task-cancel"
+                                                    onClick={() =>
+                                                      setDeleteTaskModal({
+                                                        projectId: project._id,
+                                                        taskId: task._id,
+                                                        taskTitle: task.title,
+                                                      })
+                                                    }
+                                                    disabled={
+                                                      deletingTaskId ===
+                                                      task._id
+                                                    }
+                                                  >
+                                                    {deletingTaskId === task._id
+                                                      ? "Eliminando..."
+                                                      : "Eliminar definitivamente"}
+                                                  </button>
                                                 </div>
                                               </div>
 
@@ -1946,6 +2036,12 @@ function AdminProjects() {
                                                             <strong>
                                                               {deliverable.name}
                                                             </strong>
+
+                                                            <span className="admin-projects__deliverable-version">
+                                                              Versión{" "}
+                                                              {deliverable.version ||
+                                                                1}
+                                                            </span>
 
                                                             <span>
                                                               {deliverableSourceLabels[
@@ -2804,6 +2900,59 @@ function AdminProjects() {
                 disabled={updatingTaskId === cancelTaskModal.taskId}
               >
                 Cancelar tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTaskModal && (
+        <div className="admin-projects__modal-backdrop" role="presentation">
+          <div
+            className="admin-projects__modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-task-title"
+          >
+            <span className="admin-projects__modal-eyebrow">
+              Eliminación definitiva
+            </span>
+
+            <h2 id="delete-task-title">
+              ¿Eliminar esta tarea definitivamente?
+            </h2>
+
+            <p>
+              La tarea <strong>{deleteTaskModal.taskTitle}</strong>, sus
+              entregables, versiones, comentarios e historial serán eliminados
+              permanentemente.
+            </p>
+
+            <p>Esta acción no se puede deshacer.</p>
+
+            <div className="admin-projects__modal-actions">
+              <button
+                type="button"
+                className="admin-projects__modal-back"
+                onClick={() => setDeleteTaskModal(null)}
+                disabled={deletingTaskId === deleteTaskModal.taskId}
+              >
+                Volver
+              </button>
+
+              <button
+                type="button"
+                className="admin-projects__modal-danger"
+                onClick={() => {
+                  const { projectId, taskId } = deleteTaskModal;
+
+                  handleDeleteTask(projectId, taskId);
+                }}
+                disabled={deletingTaskId === deleteTaskModal.taskId}
+              >
+                {deletingTaskId === deleteTaskModal.taskId
+                  ? "Eliminando..."
+                  : "Eliminar definitivamente"}
               </button>
             </div>
           </div>

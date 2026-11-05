@@ -700,6 +700,39 @@ const toggleTaskArchive = async (req, res, next) => {
   }
 };
 
+const deleteTask = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).send({
+        message: "No se encontró la tarea.",
+      });
+    }
+
+    await Promise.all([
+      TaskDeliverable.deleteMany({
+        task: task._id,
+      }),
+
+      TaskActivity.deleteMany({
+        task: task._id,
+      }),
+    ]);
+
+    await Task.findByIdAndDelete(task._id);
+
+    return res.send({
+      message: "La tarea y sus datos relacionados fueron eliminados.",
+      taskId: task._id,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getMyTasks,
   getProjectTasks,
@@ -714,4 +747,5 @@ module.exports = {
   toggleTaskArchive,
   reviewTaskDeliverable,
   updateDeliverableVisibility,
+  deleteTask,
 };

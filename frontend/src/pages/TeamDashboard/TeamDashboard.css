@@ -133,20 +133,6 @@
   text-align: center;
 }
 
-@media screen and (max-width: 700px) {
-  .team-dashboard__summary {
-    grid-template-columns: 1fr;
-  }
-
-  .team-dashboard__task-main {
-    flex-direction: column;
-  }
-
-  .team-dashboard__task-meta {
-    min-width: 0;
-  }
-}
-
 .team-dashboard__task-controls {
   display: flex;
   align-items: center;
@@ -183,17 +169,6 @@
 .team-dashboard__saving {
   color: #667085;
   font-size: 13px;
-}
-
-@media screen and (max-width: 700px) {
-  .team-dashboard__task-controls {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .team-dashboard__task-controls select {
-    width: 100%;
-  }
 }
 
 .team-dashboard__success {
@@ -551,6 +526,20 @@
   font-size: 12px;
 }
 
+.team-dashboard__deliverable-version {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background-color: #fff8dc;
+  color: var(--beeux-navy);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .team-dashboard__deliverable-item a {
   padding: 8px 12px;
 
@@ -662,6 +651,29 @@
   }
 
   .team-dashboard__deliverable-form > button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .team-dashboard__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .team-dashboard__task-main {
+    flex-direction: column;
+  }
+
+  .team-dashboard__task-meta {
+    min-width: 0;
+  }
+
+  .team-dashboard__task-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .team-dashboard__task-controls select {
     width: 100%;
   }
 }

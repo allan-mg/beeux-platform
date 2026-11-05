@@ -1691,6 +1691,20 @@
   color: #1e2937;
 }
 
+.admin-projects__deliverable-version {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background-color: #fff8dc;
+  color: var(--beeux-navy);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
 /* RESPONSIVE */
 
 @media screen and (max-width: 900px) {

@@ -696,6 +696,10 @@ function TeamDashboard() {
                               <div>
                                 <strong>{deliverable.name}</strong>
 
+                                <span className="team-dashboard__deliverable-version">
+                                  Versión {deliverable.version || 1}
+                                </span>
+
                                 <span>
                                   {sourceLabels[deliverable.source] ||
                                     deliverable.source}
