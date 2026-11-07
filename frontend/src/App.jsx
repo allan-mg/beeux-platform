@@ -17,6 +17,7 @@ import TeamRoute from "./components/TeamRoute/TeamRoute";
 import TeamDashboard from "./pages/TeamDashboard/TeamDashboard";
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 
 import { getCurrentUser } from "./api/authApi";
 
@@ -115,6 +116,15 @@ function App() {
             <ProtectedRoute>
               <ProjectDetails />
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
 
