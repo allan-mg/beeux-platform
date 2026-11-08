@@ -5,19 +5,20 @@ import { Link } from "react-router-dom";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
 
 function Header() {
+  const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
+
   const handleLogout = () => {
     localStorage.removeItem("jwt");
     setCurrentUser(null);
   };
 
-  const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
-
   const panelPath =
     currentUser?.role === "admin"
-      ? "/admin/projects"
+      ? "/admin/dashboard"
       : currentUser?.role === "employee"
         ? "/team/dashboard"
         : "/dashboard";
+
   return (
     <header className="header">
       <div className="header__container">
@@ -57,6 +58,12 @@ function Header() {
               <Link className="header__account-link" to={panelPath}>
                 Mi panel
               </Link>
+
+              {currentUser.role === "admin" && (
+                <Link className="header__account-link" to="/admin/projects">
+                  Proyectos
+                </Link>
+              )}
 
               <button
                 className="header__logout"

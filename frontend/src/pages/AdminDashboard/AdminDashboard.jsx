@@ -12,14 +12,15 @@ function AdminDashboard() {
   const [projects, setProjects] = useState([]);
   const [tasksByProject, setTasksByProject] = useState({});
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() =>
+    Boolean(localStorage.getItem("jwt")),
+  );
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
 
     if (!token) {
-      setIsLoading(false);
       return;
     }
 
@@ -245,7 +246,7 @@ function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  window.location.href = "/admin/projects";
+                  window.location.href = "/admin/projects?taskFilter=review";
                 }}
               >
                 <strong>Revisar tareas</strong>
@@ -255,7 +256,8 @@ function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  window.location.href = "/admin/projects";
+                  window.location.href =
+                    "/admin/projects?taskFilter=client_changes";
                 }}
               >
                 <strong>Ver cambios del cliente</strong>

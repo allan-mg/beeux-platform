@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -82,6 +83,10 @@ const getAssigneeId = (assignedTo) => {
 };
 
 function AdminProjects() {
+  const [searchParams] = useSearchParams();
+
+  const initialTaskFilter = searchParams.get("taskFilter") || "all";
+
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [tasksByProject, setTasksByProject] = useState({});
@@ -137,7 +142,7 @@ function AdminProjects() {
   const [deleteTaskModal, setDeleteTaskModal] = useState(null);
   const [deletingTaskId, setDeletingTaskId] = useState(null);
 
-  const [taskFilter, setTaskFilter] = useState("all");
+  const [taskFilter, setTaskFilter] = useState(initialTaskFilter);
 
   const [expandedProjects, setExpandedProjects] = useState({});
 
@@ -190,6 +195,9 @@ function AdminProjects() {
   useEffect(() => {
     const token = localStorage.getItem("jwt");
 
+    const requestedTaskFilter =
+      new URLSearchParams(window.location.search).get("taskFilter") || "all";
+
     if (!token) {
       return;
     }
@@ -234,15 +242,59 @@ function AdminProjects() {
           ),
         );
       })
+
       .then((taskResults) => {
         const tasksMap = {};
+        const projectsToExpand = {};
 
         taskResults.forEach(({ projectId, tasks }) => {
           tasksMap[projectId] = tasks;
+
+          if (requestedTaskFilter === "all") {
+            return;
+          }
+
+          const hasMatchingTask = tasks.some((task) => {
+            if (task.isArchived) {
+              return false;
+            }
+
+            if (requestedTaskFilter === "review") {
+              return task.status === "review";
+            }
+
+            if (requestedTaskFilter === "client_changes") {
+              return task.clientChangesPending;
+            }
+
+            if (requestedTaskFilter === "active") {
+              return ["pending", "in_progress"].includes(task.status);
+            }
+
+            if (requestedTaskFilter === "completed") {
+              return task.status === "completed";
+            }
+
+            if (requestedTaskFilter === "cancelled") {
+              return task.status === "cancelled";
+            }
+
+            return false;
+          });
+
+          if (hasMatchingTask) {
+            projectsToExpand[projectId] = true;
+          }
         });
 
         setTasksByProject(tasksMap);
+
+        if (requestedTaskFilter !== "all") {
+          setExpandedProjects(projectsToExpand);
+          setProjectViewMode("projects");
+        }
       })
+
       .catch((error) => {
         setErrorMessage(
           error.message || "No se pudieron cargar los proyectos.",
@@ -1321,6 +1373,11 @@ function AdminProjects() {
                             !task.isArchived && task.status === "review",
                         ).length,
 
+                        clientChanges: projectTasks.filter(
+                          (task) =>
+                            !task.isArchived && task.clientChangesPending,
+                        ).length,
+
                         completed: projectTasks.filter(
                           (task) =>
                             !task.isArchived && task.status === "completed",
@@ -1350,6 +1407,10 @@ function AdminProjects() {
 
                           if (task.isArchived) {
                             return false;
+                          }
+
+                          if (taskFilter === "client_changes") {
+                            return task.clientChangesPending;
                           }
 
                           if (taskFilter === "active") {
@@ -1637,6 +1698,21 @@ function AdminProjects() {
                                     onClick={() => setTaskFilter("review")}
                                   >
                                     En revisión ({taskCounts.review})
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className={
+                                      taskFilter === "client_changes"
+                                        ? "is-active"
+                                        : ""
+                                    }
+                                    onClick={() =>
+                                      setTaskFilter("client_changes")
+                                    }
+                                  >
+                                    Cambios del cliente (
+                                    {taskCounts.clientChanges})
                                   </button>
 
                                   <button
