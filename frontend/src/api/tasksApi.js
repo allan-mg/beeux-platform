@@ -258,3 +258,23 @@ export const deleteTask = ({ token, taskId }) =>
 
     return data;
   });
+
+export const getRecentActivity = ({ token }) =>
+  fetch(`${API_BASE_URL}/admin/activity/recent`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(
+        new Error(
+          data.message ||
+            `No se pudo obtener la actividad reciente: ${res.status}`,
+        ),
+      );
+    }
+
+    return data;
+  });

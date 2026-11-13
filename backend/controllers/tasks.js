@@ -344,6 +344,21 @@ const getTaskActivity = async (req, res, next) => {
   }
 };
 
+const getRecentActivity = async (req, res, next) => {
+  try {
+    const activities = await TaskActivity.find({})
+      .populate("user", "name email role")
+      .populate("task", "title status")
+      .populate("project", "serviceName serviceSlug status progress")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.send(activities);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addTaskComment = async (req, res, next) => {
   try {
     const { message } = req.body;
@@ -737,6 +752,7 @@ module.exports = {
   getMyTasks,
   getProjectTasks,
   getTaskActivity,
+  getRecentActivity,
   getMyTaskActivity,
   createProjectTask,
   updateTask,

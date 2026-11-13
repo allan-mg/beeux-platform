@@ -4,6 +4,7 @@ const {
   getMyTasks,
   getProjectTasks,
   getTaskActivity,
+  getRecentActivity,
   getMyTaskActivity,
   createProjectTask,
   updateTask,
@@ -63,6 +64,8 @@ router.get(
   validateObjectId("taskId"),
   getTaskDeliverables,
 );
+
+router.get("/admin/activity/recent", auth, admin, getRecentActivity);
 
 router.post(
   "/admin/projects/:projectId/tasks",

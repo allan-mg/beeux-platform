@@ -293,6 +293,121 @@
   line-height: 1.5;
 }
 
+/* RECENT ACTIVITY */
+
+.admin-dashboard__recent {
+  margin-top: 36px;
+}
+
+.admin-dashboard__recent-count {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-dashboard__recent-list {
+  overflow: hidden;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+
+  background-color: #ffffff;
+
+  box-shadow: 0 6px 18px rgba(30, 41, 55, 0.04);
+}
+
+.admin-dashboard__recent-item {
+  position: relative;
+
+  display: flex;
+  gap: 16px;
+
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #eef0f3;
+}
+
+.admin-dashboard__recent-item:last-child {
+  border-bottom: 0;
+}
+
+.admin-dashboard__recent-marker {
+  flex: 0 0 auto;
+
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+
+  border-radius: 50%;
+
+  background-color: #94a3b8;
+}
+
+.admin-dashboard__recent-item--client_changes .admin-dashboard__recent-marker {
+  background-color: #f59e0b;
+}
+
+.admin-dashboard__recent-item--review .admin-dashboard__recent-marker {
+  background-color: var(--beeux-yellow);
+}
+
+.admin-dashboard__recent-item--completed .admin-dashboard__recent-marker {
+  background-color: #22c55e;
+}
+
+.admin-dashboard__recent-item--in_progress .admin-dashboard__recent-marker {
+  background-color: #3b82f6;
+}
+
+.admin-dashboard__recent-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-dashboard__recent-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-dashboard__recent-heading strong {
+  color: var(--beeux-navy);
+
+  font-size: 13px;
+}
+
+.admin-dashboard__recent-heading time {
+  flex: 0 0 auto;
+
+  color: #98a2b3;
+
+  font-size: 12px;
+}
+
+.admin-dashboard__recent-content h3 {
+  margin: 5px 0 2px;
+
+  color: var(--beeux-navy);
+
+  font-size: 16px;
+}
+
+.admin-dashboard__recent-project {
+  color: #667085;
+
+  font-size: 12px;
+}
+
+.admin-dashboard__recent-content p {
+  margin: 7px 0 0;
+
+  color: #667085;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* RESPONSIVE */
 
 @media screen and (max-width: 900px) {
@@ -329,5 +444,11 @@
 
   .admin-dashboard__section-header {
     align-items: flex-start;
+  }
+
+  .admin-dashboard__recent-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }

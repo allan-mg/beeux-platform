@@ -4,13 +4,14 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 
 import { getAllProjects } from "../../api/projectsApi";
-import { getProjectTasks } from "../../api/tasksApi";
+import { getProjectTasks, getRecentActivity } from "../../api/tasksApi";
 
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
   const [projects, setProjects] = useState([]);
   const [tasksByProject, setTasksByProject] = useState({});
+  const [recentActivity, setRecentActivity] = useState([]);
 
   const [isLoading, setIsLoading] = useState(() =>
     Boolean(localStorage.getItem("jwt")),
@@ -24,9 +25,10 @@ function AdminDashboard() {
       return;
     }
 
-    getAllProjects(token)
-      .then((projectsData) => {
+    Promise.all([getAllProjects(token), getRecentActivity({ token })])
+      .then(([projectsData, activityData]) => {
         setProjects(projectsData);
+        setRecentActivity(activityData);
 
         return Promise.all(
           projectsData.map((project) =>
@@ -109,6 +111,25 @@ function AdminDashboard() {
       message: "Esta tarea está pendiente de revisión.",
     })),
   ];
+
+  const activityLabels = {
+    comment: "Comentario",
+    status_change: "Cambio de estado",
+    review_requested: "Tarea enviada a revisión",
+    changes_requested: "Cambios solicitados",
+    approved: "Tarea aprobada",
+  };
+
+  const activityStatusLabels = {
+    pending: "Pendiente",
+    in_progress: "En progreso",
+    review: "En revisión",
+    completed: "Completada",
+    cancelled: "Cancelada",
+  };
+
+  const getActivityTitle = (activity) =>
+    activityLabels[activity.type] || "Actividad";
 
   if (isLoading) {
     return (
@@ -264,6 +285,81 @@ function AdminDashboard() {
                 <span>{clientChangesTasks.length} pendientes actualmente</span>
               </button>
             </div>
+          </section>
+          <section className="admin-dashboard__recent">
+            <div className="admin-dashboard__section-header">
+              <div>
+                <span className="admin-dashboard__section-eyebrow">
+                  Seguimiento
+                </span>
+
+                <h2>Actividad reciente</h2>
+              </div>
+
+              <span className="admin-dashboard__recent-count">
+                Últimos {recentActivity.length}
+              </span>
+            </div>
+
+            {recentActivity.length === 0 ? (
+              <div className="admin-dashboard__attention-empty">
+                Todavía no hay actividad reciente.
+              </div>
+            ) : (
+              <div className="admin-dashboard__recent-list">
+                {recentActivity.map((activity) => (
+                  <article
+                    className={`admin-dashboard__recent-item admin-dashboard__recent-item--${activity.type}`}
+                    key={activity._id}
+                  >
+                    <div className="admin-dashboard__recent-marker" />
+
+                    <div className="admin-dashboard__recent-content">
+                      <div className="admin-dashboard__recent-heading">
+                        <strong>{getActivityTitle(activity)}</strong>
+
+                        <time>
+                          {new Date(activity.createdAt).toLocaleString(
+                            "es-MX",
+                            {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            },
+                          )}
+                        </time>
+                      </div>
+
+                      <h3>{activity.task?.title || "Tarea"}</h3>
+
+                      <div>
+                        <span className="admin-dashboard__recent-project">
+                          {activity.project?.serviceName || "Proyecto"}
+                        </span>
+
+                        {activity.user?.name && (
+                          <span className="admin-dashboard__recent-project">
+                            {" · "}
+                            {activity.user.name}
+                          </span>
+                        )}
+                      </div>
+
+                      {activity.message && <p>{activity.message}</p>}
+
+                      {activity.fromStatus && activity.toStatus && (
+                        <p>
+                          {activityStatusLabels[activity.fromStatus] ||
+                            activity.fromStatus}{" "}
+                          →{" "}
+                          {activityStatusLabels[activity.toStatus] ||
+                            activity.toStatus}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>
