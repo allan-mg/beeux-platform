@@ -278,3 +278,44 @@ export const getRecentActivity = ({ token }) =>
 
     return data;
   });
+
+export const getMyTaskDeliverables = async ({ token, taskId }) => {
+  const response = await fetch(
+    `http://localhost:3000/team/tasks/${taskId}/deliverables`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+
+    throw new Error(data.message || "No se pudieron obtener los entregables.");
+  }
+
+  return response.json();
+};
+
+export const createTaskDeliverable = async ({ token, taskId, deliverable }) => {
+  const response = await fetch(
+    `http://localhost:3000/team/tasks/${taskId}/deliverables`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(deliverable),
+    },
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+
+    throw new Error(data.message || "No se pudo agregar el entregable.");
+  }
+
+  return response.json();
+};

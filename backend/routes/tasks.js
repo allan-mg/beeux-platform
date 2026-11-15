@@ -1,6 +1,11 @@
 const router = require("express").Router();
 
 const {
+  getMyTaskDeliverables,
+  createTaskDeliverable,
+} = require("../controllers/taskDeliverables");
+
+const {
   getMyTasks,
   getProjectTasks,
   getTaskActivity,
@@ -66,6 +71,20 @@ router.get(
 );
 
 router.get("/admin/activity/recent", auth, admin, getRecentActivity);
+
+router.get(
+  "/team/tasks/:taskId/deliverables",
+  auth,
+  teamMember,
+  getMyTaskDeliverables,
+);
+
+router.post(
+  "/team/tasks/:taskId/deliverables",
+  auth,
+  teamMember,
+  createTaskDeliverable,
+);
 
 router.post(
   "/admin/projects/:projectId/tasks",

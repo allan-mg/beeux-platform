@@ -373,6 +373,7 @@ function TeamDashboard() {
       token,
       taskId,
       deliverable: {
+        type: "link",
         name,
         url,
         source,
