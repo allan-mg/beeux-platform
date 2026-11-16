@@ -1,11 +1,6 @@
 const router = require("express").Router();
 
 const {
-  getMyTaskDeliverables,
-  createTaskDeliverable,
-} = require("../controllers/taskDeliverables");
-
-const {
   getMyTasks,
   getProjectTasks,
   getTaskActivity,
@@ -16,6 +11,7 @@ const {
   updateMyTaskStatus,
   addTaskComment,
   addMyTaskDeliverable,
+  addMyTaskFileDeliverable,
   getTaskDeliverables,
   toggleTaskArchive,
   reviewTaskDeliverable,
@@ -27,6 +23,7 @@ const auth = require("../middlewares/auth");
 const admin = require("../middlewares/admin");
 const teamMember = require("../middlewares/teamMember");
 const validateObjectId = require("../middlewares/validateObjectId");
+const uploadDeliverable = require("../middlewares/uploadDeliverable");
 
 router.get("/team/tasks/me", auth, teamMember, getMyTasks);
 
@@ -72,20 +69,6 @@ router.get(
 
 router.get("/admin/activity/recent", auth, admin, getRecentActivity);
 
-router.get(
-  "/team/tasks/:taskId/deliverables",
-  auth,
-  teamMember,
-  getMyTaskDeliverables,
-);
-
-router.post(
-  "/team/tasks/:taskId/deliverables",
-  auth,
-  teamMember,
-  createTaskDeliverable,
-);
-
 router.post(
   "/admin/projects/:projectId/tasks",
   auth,
@@ -100,6 +83,15 @@ router.post(
   teamMember,
   validateObjectId("taskId"),
   addMyTaskDeliverable,
+);
+
+router.post(
+  "/team/tasks/:taskId/deliverables/file",
+  auth,
+  teamMember,
+  validateObjectId("taskId"),
+  uploadDeliverable.single("file"),
+  addMyTaskFileDeliverable,
 );
 
 router.post(

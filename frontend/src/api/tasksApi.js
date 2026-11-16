@@ -279,43 +279,25 @@ export const getRecentActivity = ({ token }) =>
     return data;
   });
 
-export const getMyTaskDeliverables = async ({ token, taskId }) => {
-  const response = await fetch(
-    `http://localhost:3000/team/tasks/${taskId}/deliverables`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+export const addMyTaskFileDeliverable = ({ token, taskId, name, file }) => {
+  const formData = new FormData();
+
+  formData.append("name", name);
+  formData.append("file", file);
+
+  return fetch(`${API_BASE_URL}/team/tasks/${taskId}/deliverables/file`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: formData,
+  }).then(async (res) => {
+    const data = await res.json();
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
 
-    throw new Error(data.message || "No se pudieron obtener los entregables.");
-  }
-
-  return response.json();
-};
-
-export const createTaskDeliverable = async ({ token, taskId, deliverable }) => {
-  const response = await fetch(
-    `http://localhost:3000/team/tasks/${taskId}/deliverables`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(deliverable),
-    },
-  );
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-
-    throw new Error(data.message || "No se pudo agregar el entregable.");
-  }
-
-  return response.json();
+    return data;
+  });
 };

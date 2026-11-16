@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { API_BASE_URL } from "../../config/api";
 
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -29,6 +30,18 @@ const timelineSteps = [
   "review",
   "delivered",
 ];
+
+const getDeliverableUrl = (url) => {
+  if (!url) {
+    return "#";
+  }
+
+  if (url.startsWith("/uploads/")) {
+    return `${API_BASE_URL}${url}`;
+  }
+
+  return url;
+};
 
 function ProjectDetails() {
   const { projectId } = useParams();
@@ -337,7 +350,7 @@ function ProjectDetails() {
                     </div>
 
                     <a
-                      href={deliverable.url}
+                      href={getDeliverableUrl(deliverable.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

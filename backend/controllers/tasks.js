@@ -3,6 +3,7 @@ const Project = require("../models/project");
 const User = require("../models/user");
 const TaskActivity = require("../models/taskActivity");
 const TaskDeliverable = require("../models/taskDeliverable");
+const fs = require("fs/promises");
 
 const getProjectTasks = async (req, res, next) => {
   try {
@@ -530,6 +531,120 @@ const addMyTaskDeliverable = async (req, res, next) => {
   }
 };
 
+const addMyTaskFileDeliverable = async (req, res, next) => {
+  let shouldDeleteUploadedFile = Boolean(req.file);
+
+  const deleteUploadedFile = async () => {
+    if (!req.file?.path || !shouldDeleteUploadedFile) {
+      return;
+    }
+
+    try {
+      await fs.unlink(req.file.path);
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        console.error("Could not delete uploaded file:", error);
+      }
+    }
+  };
+
+  try {
+    const { taskId } = req.params;
+    const { name } = req.body;
+
+    if (!req.file) {
+      return res.status(400).send({
+        message: "Selecciona un archivo para subir.",
+      });
+    }
+
+    if (!name?.trim()) {
+      await deleteUploadedFile();
+
+      return res.status(400).send({
+        message: "El entregable debe tener un nombre.",
+      });
+    }
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      await deleteUploadedFile();
+
+      return res.status(404).send({
+        message: "No se encontró la tarea.",
+      });
+    }
+
+    if (!task.assignedTo || String(task.assignedTo) !== String(req.user._id)) {
+      await deleteUploadedFile();
+
+      return res.status(403).send({
+        message: "No tienes permiso para agregar entregables a esta tarea.",
+      });
+    }
+
+    if (task.status === "cancelled") {
+      await deleteUploadedFile();
+
+      return res.status(400).send({
+        message: "No puedes agregar entregables a una tarea cancelada.",
+      });
+    }
+
+    const latestDeliverable = await TaskDeliverable.findOne({
+      task: task._id,
+    })
+      .sort({ version: -1, createdAt: -1 })
+      .select("version");
+
+    const existingDeliverablesCount = await TaskDeliverable.countDocuments({
+      task: task._id,
+    });
+
+    const nextVersion =
+      Math.max(latestDeliverable?.version || 0, existingDeliverablesCount) + 1;
+
+    const fileUrl = `/uploads/deliverables/${req.file.filename}`;
+
+    const deliverable = await TaskDeliverable.create({
+      task: task._id,
+      project: task.project,
+      uploadedBy: req.user._id,
+      type: "file",
+      source: "upload",
+      name: name.trim(),
+      url: fileUrl,
+      fileName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      fileSize: req.file.size,
+      version: nextVersion,
+      clientVisible: false,
+      status: "submitted",
+    });
+
+    shouldDeleteUploadedFile = false;
+
+    await TaskActivity.create({
+      task: task._id,
+      project: task.project,
+      user: req.user._id,
+      type: "file_uploaded",
+      message: `Se subió el entregable "${deliverable.name}".`,
+      clientVisible: false,
+    });
+
+    const populatedDeliverable = await TaskDeliverable.findById(
+      deliverable._id,
+    ).populate("uploadedBy", "name email");
+
+    return res.status(201).send(populatedDeliverable);
+  } catch (error) {
+    await deleteUploadedFile();
+    return next(error);
+  }
+};
+
 const getTaskDeliverables = async (req, res, next) => {
   try {
     const { taskId } = req.params;
@@ -759,6 +874,7 @@ module.exports = {
   updateMyTaskStatus,
   addTaskComment,
   addMyTaskDeliverable,
+  addMyTaskFileDeliverable,
   getTaskDeliverables,
   toggleTaskArchive,
   reviewTaskDeliverable,

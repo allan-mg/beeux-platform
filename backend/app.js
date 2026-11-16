@@ -51,6 +51,11 @@ app.use(
   express.static(path.join(__dirname, "generated", "contracts")),
 );
 
+app.use(
+  "/uploads/deliverables",
+  express.static(path.join(__dirname, "uploads", "deliverables")),
+);
+
 app.use(routes);
 
 app.use(notFound);

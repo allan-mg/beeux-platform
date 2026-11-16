@@ -11,7 +11,10 @@ import {
   getMyTaskActivity,
   getTaskDeliverables,
   addMyTaskDeliverable,
+  addMyTaskFileDeliverable,
 } from "../../api/tasksApi";
+
+import { API_BASE_URL } from "../../config/api";
 
 import "./TeamDashboard.css";
 
@@ -36,6 +39,18 @@ const sourceLabels = {
   affinity: "Affinity",
   drive: "Google Drive",
   external: "Enlace externo",
+};
+
+const getDeliverableUrl = (url) => {
+  if (!url) {
+    return "#";
+  }
+
+  if (url.startsWith("/uploads/")) {
+    return `${API_BASE_URL}${url}`;
+  }
+
+  return url;
 };
 
 function TeamDashboard() {
@@ -409,6 +424,69 @@ function TeamDashboard() {
       });
   };
 
+  const handleAddFileDeliverable = (taskId) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      setErrorMessage("No se encontró una sesión activa.");
+      return;
+    }
+
+    const form = deliverableForms[taskId] || {};
+
+    const name = form.name?.trim() || "";
+    const file = form.file;
+
+    if (!name) {
+      setErrorMessage("Escribe un nombre para el entregable.");
+      return;
+    }
+
+    if (!file) {
+      setErrorMessage("Selecciona un archivo para subir.");
+      return;
+    }
+
+    setSendingDeliverableTaskId(taskId);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    addMyTaskFileDeliverable({
+      token,
+      taskId,
+      name,
+      file,
+    })
+      .then(() => {
+        setDeliverableForms((currentForms) => ({
+          ...currentForms,
+          [taskId]: {
+            name: "",
+            url: "",
+            source: "external",
+            mode: "link",
+            file: null,
+          },
+        }));
+
+        setDeliverablesOpen((currentOpen) => ({
+          ...currentOpen,
+          [taskId]: true,
+        }));
+
+        return refreshTaskDeliverables(taskId, token);
+      })
+      .then(() => {
+        setSuccessMessage("Archivo subido correctamente.");
+      })
+      .catch((error) => {
+        setErrorMessage(error.message || "No se pudo subir el archivo.");
+      })
+      .finally(() => {
+        setSendingDeliverableTaskId(null);
+      });
+  };
+
   if (isLoading) {
     return <main className="team-dashboard">Cargando tareas...</main>;
   }
@@ -632,6 +710,45 @@ function TeamDashboard() {
                       {task.status !== "cancelled" &&
                         task.status !== "completed" && (
                           <div className="team-dashboard__deliverable-form">
+                            <div className="team-dashboard__deliverable-mode">
+                              <button
+                                type="button"
+                                className={
+                                  (deliverableForms[task._id]?.mode ||
+                                    "link") === "link"
+                                    ? "team-dashboard__deliverable-mode-button team-dashboard__deliverable-mode-button--active"
+                                    : "team-dashboard__deliverable-mode-button"
+                                }
+                                onClick={() =>
+                                  handleDeliverableChange(
+                                    task._id,
+                                    "mode",
+                                    "link",
+                                  )
+                                }
+                              >
+                                Enlace / Canva
+                              </button>
+
+                              <button
+                                type="button"
+                                className={
+                                  deliverableForms[task._id]?.mode === "file"
+                                    ? "team-dashboard__deliverable-mode-button team-dashboard__deliverable-mode-button--active"
+                                    : "team-dashboard__deliverable-mode-button"
+                                }
+                                onClick={() =>
+                                  handleDeliverableChange(
+                                    task._id,
+                                    "mode",
+                                    "file",
+                                  )
+                                }
+                              >
+                                Subir archivo
+                              </button>
+                            </div>
+
                             <label>
                               <span>Nombre del entregable</span>
 
@@ -649,58 +766,107 @@ function TeamDashboard() {
                               />
                             </label>
 
-                            <label>
-                              <span>Origen</span>
+                            {(deliverableForms[task._id]?.mode || "link") ===
+                            "link" ? (
+                              <>
+                                <label>
+                                  <span>Origen</span>
 
-                              <select
-                                value={
-                                  deliverableForms[task._id]?.source ||
-                                  "external"
-                                }
-                                onChange={(event) =>
-                                  handleDeliverableChange(
-                                    task._id,
-                                    "source",
-                                    event.target.value,
-                                  )
-                                }
-                              >
-                                <option value="external">Enlace externo</option>
+                                  <select
+                                    value={
+                                      deliverableForms[task._id]?.source ||
+                                      "external"
+                                    }
+                                    onChange={(event) =>
+                                      handleDeliverableChange(
+                                        task._id,
+                                        "source",
+                                        event.target.value,
+                                      )
+                                    }
+                                  >
+                                    <option value="external">
+                                      Enlace externo
+                                    </option>
+                                    <option value="canva">Canva</option>
+                                    <option value="drive">Google Drive</option>
+                                    <option value="affinity">Affinity</option>
+                                  </select>
+                                </label>
 
-                                <option value="canva">Canva</option>
+                                <label>
+                                  <span>URL</span>
 
-                                <option value="drive">Google Drive</option>
+                                  <input
+                                    type="url"
+                                    value={
+                                      deliverableForms[task._id]?.url || ""
+                                    }
+                                    onChange={(event) =>
+                                      handleDeliverableChange(
+                                        task._id,
+                                        "url",
+                                        event.target.value,
+                                      )
+                                    }
+                                    placeholder="https://..."
+                                  />
+                                </label>
 
-                                <option value="affinity">Affinity</option>
-                              </select>
-                            </label>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddDeliverable(task._id)}
+                                  disabled={
+                                    sendingDeliverableTaskId === task._id
+                                  }
+                                >
+                                  {sendingDeliverableTaskId === task._id
+                                    ? "Agregando..."
+                                    : "Agregar entregable"}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <label>
+                                  <span>Archivo</span>
 
-                            <label>
-                              <span>URL</span>
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                    onChange={(event) =>
+                                      handleDeliverableChange(
+                                        task._id,
+                                        "file",
+                                        event.target.files?.[0] || null,
+                                      )
+                                    }
+                                  />
+                                </label>
 
-                              <input
-                                type="url"
-                                value={deliverableForms[task._id]?.url || ""}
-                                onChange={(event) =>
-                                  handleDeliverableChange(
-                                    task._id,
-                                    "url",
-                                    event.target.value,
-                                  )
-                                }
-                                placeholder="https://..."
-                              />
-                            </label>
+                                {deliverableForms[task._id]?.file && (
+                                  <p className="team-dashboard__selected-file">
+                                    Archivo seleccionado:{" "}
+                                    <strong>
+                                      {deliverableForms[task._id].file.name}
+                                    </strong>
+                                  </p>
+                                )}
 
-                            <button
-                              type="button"
-                              onClick={() => handleAddDeliverable(task._id)}
-                              disabled={sendingDeliverableTaskId === task._id}
-                            >
-                              {sendingDeliverableTaskId === task._id
-                                ? "Agregando..."
-                                : "Agregar entregable"}
-                            </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleAddFileDeliverable(task._id)
+                                  }
+                                  disabled={
+                                    sendingDeliverableTaskId === task._id
+                                  }
+                                >
+                                  {sendingDeliverableTaskId === task._id
+                                    ? "Subiendo..."
+                                    : "Subir archivo"}
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
 
@@ -740,7 +906,7 @@ function TeamDashboard() {
                               </div>
 
                               <a
-                                href={deliverable.url}
+                                href={getDeliverableUrl(deliverable.url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >

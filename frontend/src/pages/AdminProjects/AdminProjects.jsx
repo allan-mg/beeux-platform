@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { API_BASE_URL } from "../../config/api";
 
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -80,6 +81,18 @@ const getAssigneeId = (assignedTo) => {
   }
 
   return assignedTo._id || "";
+};
+
+const getDeliverableUrl = (url) => {
+  if (!url) {
+    return "#";
+  }
+
+  if (url.startsWith("/uploads/")) {
+    return `${API_BASE_URL}${url}`;
+  }
+
+  return url;
 };
 
 function AdminProjects() {
@@ -2271,9 +2284,9 @@ function AdminProjects() {
                                                           )}
 
                                                           <a
-                                                            href={
-                                                              deliverable.url
-                                                            }
+                                                            href={getDeliverableUrl(
+                                                              deliverable.url,
+                                                            )}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                           >
