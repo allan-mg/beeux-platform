@@ -413,17 +413,14 @@
 
 .team-dashboard__deliverable-form {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 0.8fr) minmax(
-      220px,
-      1.3fr
-    );
-  gap: 14px;
+  grid-template-columns: 1.15fr 0.85fr 1.25fr;
+  gap: 16px;
   align-items: end;
 
-  padding: 16px;
+  padding: 18px;
 
   border: 1px solid #e2e6eb;
-  border-radius: 12px;
+  border-radius: 14px;
 
   background-color: #f8f9fb;
 }
@@ -444,31 +441,37 @@
 .team-dashboard__deliverable-form input,
 .team-dashboard__deliverable-form select {
   width: 100%;
-  min-height: 42px;
-  padding: 9px 11px;
+  min-height: 44px;
+  padding: 10px 12px;
 
   border: 1px solid #d5dbe2;
-  border-radius: 8px;
+  border-radius: 10px;
 
   background-color: #ffffff;
   color: var(--beeux-navy);
 
   font: inherit;
   font-size: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .team-dashboard__deliverable-form input:focus,
 .team-dashboard__deliverable-form select:focus {
-  outline: 2px solid rgba(249, 203, 16, 0.3);
+  outline: none;
   border-color: var(--beeux-yellow);
+  box-shadow: 0 0 0 3px rgba(249, 203, 16, 0.2);
 }
 
 .team-dashboard__deliverable-form > button {
-  min-height: 42px;
-  padding: 9px 16px;
+  min-height: 44px;
+  padding: 10px 18px;
 
   border: 0;
-  border-radius: 8px;
+  border-radius: 10px;
 
   background-color: var(--beeux-yellow);
   color: var(--beeux-navy);
@@ -478,6 +481,16 @@
   font-weight: 700;
 
   cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.team-dashboard__deliverable-form > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(30, 41, 55, 0.12);
 }
 
 .team-dashboard__deliverable-form > button:disabled {
@@ -674,46 +687,108 @@
 }
 
 .team-dashboard__deliverable-mode {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 4px;
+  grid-column: 1 / -1;
+
+  display: inline-flex;
+  width: fit-content;
+  gap: 6px;
+  margin-bottom: 2px;
+  padding: 4px;
+
+  border: 1px solid #e2e6eb;
+  border-radius: 10px;
+
+  background-color: #ffffff;
 }
 
 .team-dashboard__deliverable-mode-button {
-  min-height: 38px;
+  min-height: 36px;
   padding: 8px 14px;
 
-  border: 1px solid #d7dce2;
+  border: 0;
   border-radius: 8px;
 
-  background-color: #ffffff;
-  color: var(--beeux-navy);
+  background-color: transparent;
+  color: #667085;
 
   font: inherit;
   font-size: 13px;
   font-weight: 700;
 
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .team-dashboard__deliverable-mode-button--active {
-  border-color: var(--beeux-yellow);
-
   background-color: var(--beeux-yellow);
   color: var(--beeux-navy);
 }
 
-.team-dashboard__selected-file {
-  margin: 0;
+.team-dashboard__deliverable-form input[type="file"] {
+  padding: 6px 8px;
+  cursor: pointer;
+}
 
+.team-dashboard__deliverable-form input[type="file"]::file-selector-button {
+  min-height: 32px;
+  margin-right: 10px;
+  padding: 7px 12px;
+
+  border: 0;
+  border-radius: 7px;
+
+  background-color: #eef1f4;
+  color: var(--beeux-navy);
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.team-dashboard__deliverable-form
+  input[type="file"]::file-selector-button:hover {
+  background-color: var(--beeux-yellow);
+}
+
+.team-dashboard__selected-file {
+  grid-column: 1 / -1;
+
+  margin: -4px 0 0;
+  padding: 10px 12px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+
+  background-color: #ffffff;
   color: #667085;
 
   font-size: 13px;
+  line-height: 1.4;
+}
+
+.team-dashboard__selected-file strong {
+  color: var(--beeux-navy);
 }
 
 @media screen and (max-width: 900px) {
   .team-dashboard__deliverable-form {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-dashboard__deliverable-mode,
+  .team-dashboard__selected-file,
+  .team-dashboard__deliverable-form > button {
+    grid-column: 1 / -1;
   }
 
   .team-dashboard__deliverable-form > button {
@@ -761,8 +836,22 @@
     width: fit-content;
   }
 
+  .team-dashboard__deliverable-form {
+    padding: 14px;
+  }
+
+  .team-dashboard__deliverable-form,
+  .team-dashboard__deliverable-form label,
+  .team-dashboard__deliverable-mode,
+  .team-dashboard__selected-file,
+  .team-dashboard__deliverable-form > button {
+    grid-column: 1 / -1;
+  }
+
   .team-dashboard__deliverable-mode {
-    flex-direction: column;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
   }
 
   .team-dashboard__deliverable-mode-button {

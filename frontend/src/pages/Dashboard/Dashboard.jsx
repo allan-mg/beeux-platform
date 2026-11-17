@@ -19,6 +19,7 @@ function Dashboard() {
   const [isSavingLegalProfile, setIsSavingLegalProfile] = useState(false);
   const [legalProfileMessage, setLegalProfileMessage] = useState("");
   const [legalProfileError, setLegalProfileError] = useState("");
+  const [isEditingLegalProfile, setIsEditingLegalProfile] = useState(false);
 
   const [legalProfile, setLegalProfile] = useState(() => ({
     entityType: currentUser?.legalProfile?.entityType || "individual",
@@ -84,6 +85,31 @@ function Dashboard() {
     rejected: "Verificación rechazada",
   };
 
+  const hasSavedLegalProfile = Boolean(
+    currentUser?.legalProfile?.legalName &&
+      currentUser?.legalProfile?.taxId &&
+      currentUser?.legalProfile?.phone,
+  );
+
+  const legalAddress = currentUser?.legalProfile?.address;
+
+  const formattedLegalAddress = [
+    legalAddress?.street,
+    legalAddress?.exteriorNumber,
+    legalAddress?.interiorNumber
+      ? `Int. ${legalAddress.interiorNumber}`
+      : "",
+    legalAddress?.neighborhood,
+    legalAddress?.city,
+    legalAddress?.state,
+    legalAddress?.postalCode
+      ? `C.P. ${legalAddress.postalCode}`
+      : "",
+    legalAddress?.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   const handleLegalProfileChange = (event) => {
     const { name, value } = event.target;
 
@@ -127,7 +153,33 @@ function Dashboard() {
       .then((updatedUser) => {
         setCurrentUser(updatedUser);
 
-        setLegalProfileMessage("Tus datos legales se guardaron correctamente.");
+        setLegalProfile({
+          entityType: updatedUser?.legalProfile?.entityType || "individual",
+          legalName: updatedUser?.legalProfile?.legalName || "",
+          taxId: updatedUser?.legalProfile?.taxId || "",
+          phone: updatedUser?.legalProfile?.phone || "",
+          representativeName:
+            updatedUser?.legalProfile?.representativeName || "",
+          address: {
+            street: updatedUser?.legalProfile?.address?.street || "",
+            exteriorNumber:
+              updatedUser?.legalProfile?.address?.exteriorNumber || "",
+            interiorNumber:
+              updatedUser?.legalProfile?.address?.interiorNumber || "",
+            neighborhood:
+              updatedUser?.legalProfile?.address?.neighborhood || "",
+            city: updatedUser?.legalProfile?.address?.city || "",
+            state: updatedUser?.legalProfile?.address?.state || "",
+            postalCode:
+              updatedUser?.legalProfile?.address?.postalCode || "",
+            country: updatedUser?.legalProfile?.address?.country || "",
+          },
+        });
+
+        setIsEditingLegalProfile(false);
+        setLegalProfileMessage(
+          "Tus datos legales se guardaron correctamente.",
+        );
       })
       .catch((error) => {
         setLegalProfileError(error);
@@ -291,6 +343,87 @@ function Dashboard() {
               </div>
             </div>
 
+            {hasSavedLegalProfile && !isEditingLegalProfile ? (
+              <div className="dashboard__legal-summary">
+                <div className="dashboard__legal-summary-grid">
+                  <div className="dashboard__legal-summary-item">
+                    <span>Tipo de cliente</span>
+                    <strong>
+                      {currentUser.legalProfile.entityType === "business"
+                        ? "Empresa / persona moral"
+                        : "Persona física"}
+                    </strong>
+                  </div>
+
+                  <div className="dashboard__legal-summary-item">
+                    <span>
+                      {currentUser.legalProfile.entityType === "business"
+                        ? "Razón social"
+                        : "Nombre legal"}
+                    </span>
+                    <strong>{currentUser.legalProfile.legalName}</strong>
+                  </div>
+
+                  <div className="dashboard__legal-summary-item">
+                    <span>RFC / identificador fiscal</span>
+                    <strong>{currentUser.legalProfile.taxId}</strong>
+                  </div>
+
+                  <div className="dashboard__legal-summary-item">
+                    <span>Teléfono</span>
+                    <strong>{currentUser.legalProfile.phone}</strong>
+                  </div>
+
+                  {currentUser.legalProfile.entityType === "business" &&
+                    currentUser.legalProfile.representativeName && (
+                      <div className="dashboard__legal-summary-item">
+                        <span>Representante legal</span>
+                        <strong>
+                          {currentUser.legalProfile.representativeName}
+                        </strong>
+                      </div>
+                    )}
+
+                  <div className="dashboard__legal-summary-item dashboard__legal-summary-item--full">
+                    <span>Domicilio legal</span>
+                    <strong>
+                      {formattedLegalAddress || "Domicilio no disponible"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="dashboard__legal-summary-actions">
+                  <button
+                    className="dashboard__edit-legal-button"
+                    type="button"
+                    onClick={() => {
+                      setLegalProfileMessage("");
+                      setLegalProfileError("");
+                      setIsEditingLegalProfile(true);
+                    }}
+                  >
+                    Editar datos
+                  </button>
+                </div>
+
+                {verificationStatus !== "verified" && (
+                  <div className="dashboard__verification-note">
+                    <strong>Verificación de identidad</strong>
+
+                    <p>
+                      Tus datos están guardados, pero la verificación de
+                      identidad o empresa todavía puede estar pendiente.
+                    </p>
+                  </div>
+                )}
+
+                {legalProfileMessage && (
+                  <p className="dashboard__form-message dashboard__form-message--success">
+                    {legalProfileMessage}
+                  </p>
+                )}
+              </div>
+            ) : (
             <form
               className="dashboard__legal-form"
               onSubmit={handleLegalProfileSubmit}
@@ -496,6 +629,53 @@ function Dashboard() {
                 </p>
               )}
 
+              {hasSavedLegalProfile && (
+                <button
+                  className="dashboard__cancel-edit-button"
+                  type="button"
+                  onClick={() => {
+                    setLegalProfile({
+                      entityType:
+                        currentUser?.legalProfile?.entityType || "individual",
+                      legalName:
+                        currentUser?.legalProfile?.legalName || "",
+                      taxId: currentUser?.legalProfile?.taxId || "",
+                      phone: currentUser?.legalProfile?.phone || "",
+                      representativeName:
+                        currentUser?.legalProfile?.representativeName || "",
+                      address: {
+                        street:
+                          currentUser?.legalProfile?.address?.street || "",
+                        exteriorNumber:
+                          currentUser?.legalProfile?.address
+                            ?.exteriorNumber || "",
+                        interiorNumber:
+                          currentUser?.legalProfile?.address
+                            ?.interiorNumber || "",
+                        neighborhood:
+                          currentUser?.legalProfile?.address?.neighborhood ||
+                          "",
+                        city:
+                          currentUser?.legalProfile?.address?.city || "",
+                        state:
+                          currentUser?.legalProfile?.address?.state || "",
+                        postalCode:
+                          currentUser?.legalProfile?.address?.postalCode ||
+                          "",
+                        country:
+                          currentUser?.legalProfile?.address?.country || "",
+                      },
+                    });
+
+                    setLegalProfileMessage("");
+                    setLegalProfileError("");
+                    setIsEditingLegalProfile(false);
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+
               <button
                 className="dashboard__save-button"
                 type="submit"
@@ -506,6 +686,7 @@ function Dashboard() {
                   : "Guardar datos legales"}
               </button>
             </form>
+            )}
           </section>
         </div>
       </main>

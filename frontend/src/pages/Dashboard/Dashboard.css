@@ -322,6 +322,103 @@
   cursor: not-allowed;
 }
 
+
+.dashboard__legal-summary {
+  margin-top: 28px;
+}
+
+.dashboard__legal-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard__legal-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  padding: 16px;
+
+  border: 1px solid #e6e8ec;
+  border-radius: 12px;
+
+  background-color: #fafbfc;
+}
+
+.dashboard__legal-summary-item--full {
+  grid-column: 1 / -1;
+}
+
+.dashboard__legal-summary-item span {
+  color: var(--beeux-gray-600);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard__legal-summary-item strong {
+  color: var(--beeux-navy);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dashboard__legal-summary-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 18px;
+}
+
+.dashboard__edit-legal-button {
+  min-height: 42px;
+  padding: 10px 16px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background-color: var(--beeux-navy);
+  color: var(--beeux-white);
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.dashboard__edit-legal-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.dashboard__cancel-edit-button {
+  min-height: 42px;
+  margin-top: 24px;
+  margin-right: 10px;
+  padding: 10px 18px;
+
+  border: 1px solid #d8dde5;
+  border-radius: 10px;
+
+  background-color: #ffffff;
+  color: var(--beeux-navy);
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.dashboard__cancel-edit-button:hover {
+  border-color: var(--beeux-yellow);
+}
+
 /* Responsive */
 
 @media screen and (max-width: 800px) {
@@ -359,5 +456,27 @@
 
   .dashboard__field--full {
     grid-column: auto;
+  }
+
+  .dashboard__legal-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard__legal-summary-item--full {
+    grid-column: auto;
+  }
+
+  .dashboard__legal-summary-actions {
+    justify-content: stretch;
+  }
+
+  .dashboard__edit-legal-button,
+  .dashboard__cancel-edit-button,
+  .dashboard__save-button {
+    width: 100%;
+  }
+
+  .dashboard__cancel-edit-button {
+    margin-right: 0;
   }
 }
