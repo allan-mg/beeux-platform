@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 
-import { createTeamInvite, getTeamMembers } from "../../api/teamApi";
+import {
+  createTeamInvite,
+  createTeamMemberPasswordReset,
+  getTeamMembers,
+  updateTeamMemberStatus,
+} from "../../api/teamApi";
 
 import "./AdminTeam.css";
 
@@ -11,8 +16,12 @@ function AdminTeam() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [inviteLink, setInviteLink] = useState("");
+  const [passwordResetLink, setPasswordResetLink] = useState("");
+  const [passwordResetName, setPasswordResetName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [memberActionId, setMemberActionId] = useState("");
+  const [passwordResetActionId, setPasswordResetActionId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -24,7 +33,7 @@ function AdminTeam() {
       return;
     }
 
-    return getTeamMembers(token)
+    return getTeamMembers(token, { includeInactive: true })
       .then((data) => {
         setTeamMembers(data);
       })
@@ -88,22 +97,120 @@ function AdminTeam() {
       });
   };
 
-  const handleCopyInvite = () => {
-    if (!inviteLink) {
+  const handleCopyLink = (link, successText) => {
+    if (!link) {
       return;
     }
 
     navigator.clipboard
-      .writeText(inviteLink)
+      .writeText(link)
       .then(() => {
-        setSuccessMessage("Enlace de invitación copiado.");
+        setSuccessMessage(successText);
       })
       .catch(() => {
         setErrorMessage("No se pudo copiar el enlace automáticamente.");
       });
   };
 
+  const handlePasswordReset = (member) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token || member.role !== "employee") {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `¿Generar un enlace para restablecer la contraseña de ${member.name}?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setPasswordResetActionId(member._id);
+    setErrorMessage("");
+    setSuccessMessage("");
+    setPasswordResetLink("");
+    setPasswordResetName("");
+
+    createTeamMemberPasswordReset({
+      token,
+      userId: member._id,
+    })
+      .then((reset) => {
+        const link = `${window.location.origin}/password-reset/${reset.token}`;
+
+        setPasswordResetLink(link);
+        setPasswordResetName(member.name);
+        setSuccessMessage(
+          `Enlace de restablecimiento creado para ${member.name}. Vence en 1 hora.`,
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message ||
+            error ||
+            "No se pudo generar el enlace de restablecimiento.",
+        );
+      })
+      .finally(() => {
+        setPasswordResetActionId("");
+      });
+  };
+
+  const handleMemberStatusChange = (member) => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token || member.role !== "employee") {
+      return;
+    }
+
+    const nextIsActive = member.isActive === false;
+    const actionLabel = nextIsActive ? "reactivar" : "desactivar";
+
+    const confirmed = window.confirm(
+      `¿Seguro que quieres ${actionLabel} a ${member.name}?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setMemberActionId(member._id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    updateTeamMemberStatus({
+      token,
+      userId: member._id,
+      isActive: nextIsActive,
+    })
+      .then((updatedMember) => {
+        setTeamMembers((current) =>
+          current.map((item) =>
+            item._id === updatedMember._id ? { ...item, ...updatedMember } : item,
+          ),
+        );
+
+        setSuccessMessage(
+          nextIsActive
+            ? `${member.name} fue reactivado correctamente.`
+            : `${member.name} fue desactivado correctamente.`,
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(
+          error.message || error || "No se pudo actualizar el acceso del empleado.",
+        );
+      })
+      .finally(() => {
+        setMemberActionId("");
+      });
+  };
+
   const employees = teamMembers.filter((member) => member.role === "employee");
+  const activeEmployees = employees.filter((member) => member.isActive !== false);
+  const inactiveEmployees = employees.filter((member) => member.isActive === false);
   const admins = teamMembers.filter((member) => member.role === "admin");
 
   return (
@@ -125,12 +232,12 @@ function AdminTeam() {
               <strong>{admins.length}</strong>
             </article>
             <article>
-              <span>Empleados</span>
-              <strong>{employees.length}</strong>
+              <span>Empleados activos</span>
+              <strong>{activeEmployees.length}</strong>
             </article>
             <article>
-              <span>Total interno</span>
-              <strong>{teamMembers.length}</strong>
+              <span>Empleados inactivos</span>
+              <strong>{inactiveEmployees.length}</strong>
             </article>
           </section>
 
@@ -191,12 +298,52 @@ function AdminTeam() {
                   <code>{inviteLink}</code>
                 </div>
 
-                <button type="button" onClick={handleCopyInvite}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyLink(inviteLink, "Enlace de invitación copiado.")
+                  }
+                >
                   Copiar enlace
                 </button>
               </div>
             )}
           </section>
+
+          {passwordResetLink && (
+            <section className="admin-team__password-reset-section">
+              <div className="admin-team__section-heading">
+                <div>
+                  <span>Seguridad</span>
+                  <h2>Restablecimiento de contraseña</h2>
+                </div>
+              </div>
+
+              <p className="admin-team__password-reset-description">
+                Comparte este enlace únicamente con {passwordResetName}. El
+                enlace vence en 1 hora y solo puede utilizarse una vez.
+              </p>
+
+              <div className="admin-team__invite-result">
+                <div>
+                  <span>Enlace de restablecimiento</span>
+                  <code>{passwordResetLink}</code>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyLink(
+                      passwordResetLink,
+                      "Enlace de restablecimiento copiado.",
+                    )
+                  }
+                >
+                  Copiar enlace
+                </button>
+              </div>
+            </section>
+          )}
 
           <section className="admin-team__members-section">
             <div className="admin-team__section-heading">
@@ -223,11 +370,49 @@ function AdminTeam() {
                       <span>{member.email}</span>
                     </div>
 
-                    <span
-                      className={`admin-team__role admin-team__role--${member.role}`}
-                    >
-                      {member.role === "admin" ? "Admin" : "Empleado"}
-                    </span>
+                    <div className="admin-team__member-actions">
+                      <span
+                        className={`admin-team__role admin-team__role--${member.role}`}
+                      >
+                        {member.role === "admin"
+                          ? "Admin"
+                          : member.isActive === false
+                            ? "Empleado inactivo"
+                            : "Empleado"}
+                      </span>
+
+                      {member.role === "employee" && (
+                        <button
+                          className="admin-team__reset-button"
+                          type="button"
+                          disabled={passwordResetActionId === member._id}
+                          onClick={() => handlePasswordReset(member)}
+                        >
+                          {passwordResetActionId === member._id
+                            ? "Generando..."
+                            : "Restablecer contraseña"}
+                        </button>
+                      )}
+
+                      {member.role === "employee" && (
+                        <button
+                          className={`admin-team__status-button ${
+                            member.isActive === false
+                              ? "admin-team__status-button--activate"
+                              : "admin-team__status-button--deactivate"
+                          }`}
+                          type="button"
+                          disabled={memberActionId === member._id}
+                          onClick={() => handleMemberStatusChange(member)}
+                        >
+                          {memberActionId === member._id
+                            ? "Actualizando..."
+                            : member.isActive === false
+                              ? "Reactivar"
+                              : "Desactivar"}
+                        </button>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>

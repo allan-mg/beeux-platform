@@ -69,6 +69,12 @@ const login = (req, res, next) => {
         throw error;
       }
 
+      if (user.isActive === false) {
+        const error = new Error("Account is inactive");
+        error.statusCode = 403;
+        throw error;
+      }
+
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
           const error = new Error("Email or password is incorrect");
@@ -256,15 +262,66 @@ const verifyCurrentUserForDevelopment = async (req, res, next) => {
 
 const getTeamMembers = async (req, res, next) => {
   try {
-    const users = await User.find({
+    const includeInactive = req.query.includeInactive === "true";
+
+    const query = {
       role: {
         $in: ["employee", "admin"],
       },
-    })
-      .select("name email role")
+    };
+
+    if (!includeInactive) {
+      query.isActive = { $ne: false };
+    }
+
+    const users = await User.find(query)
+      .select("name email role isActive deactivatedAt")
       .sort({ name: 1 });
 
     res.send(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateTeamMemberStatus = async (req, res, next) => {
+  try {
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      const error = new Error("isActive must be a boolean");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.role !== "employee") {
+      const error = new Error("Only employee accounts can be activated or deactivated here");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.isActive = isActive;
+    user.deactivatedAt = isActive ? null : new Date();
+    user.deactivatedBy = isActive ? null : req.user._id;
+
+    await user.save();
+
+    res.send({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      deactivatedAt: user.deactivatedAt,
+    });
   } catch (error) {
     next(error);
   }
@@ -275,6 +332,7 @@ module.exports = {
   login,
   getCurrentUser,
   getTeamMembers,
+  updateTeamMemberStatus,
   updateLegalProfile,
   verifyCurrentUserForDevelopment,
 };

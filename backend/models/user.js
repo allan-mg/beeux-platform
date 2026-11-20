@@ -28,6 +28,27 @@ const userSchema = new mongoose.Schema(
       default: "client",
     },
 
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    deactivatedAt: {
+      type: Date,
+      default: null,
+    },
+
+    deactivatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
+
     legalProfile: {
       entityType: {
         type: String,

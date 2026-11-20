@@ -73,3 +73,31 @@ export const updateLegalProfile = ({ token, legalProfile }) =>
 
     return data;
   });
+
+export const getPasswordReset = (resetToken) =>
+  fetch(`${API_BASE_URL}/password-resets/${resetToken}`).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });
+
+export const completePasswordReset = ({ token, password }) =>
+  fetch(`${API_BASE_URL}/password-resets/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token, password }),
+  }).then(async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Promise.reject(data.message || `Error: ${res.status}`);
+    }
+
+    return data;
+  });

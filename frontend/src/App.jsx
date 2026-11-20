@@ -20,6 +20,7 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminTeam from "./pages/AdminTeam/AdminTeam";
 import TeamInviteAccept from "./pages/TeamInviteAccept/TeamInviteAccept";
+import PasswordReset from "./pages/PasswordReset/PasswordReset";
 
 import { getCurrentUser } from "./api/authApi";
 
@@ -149,6 +150,8 @@ function App() {
         />
 
         <Route path="/team/invitations/:token" element={<TeamInviteAccept />} />
+
+        <Route path="/password-reset/:token" element={<PasswordReset />} />
 
         <Route
           path="/team/dashboard"
