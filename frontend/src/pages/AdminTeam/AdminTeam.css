@@ -1,0 +1,293 @@
+.admin-team {
+  min-height: 70vh;
+  padding: 70px 20px 90px;
+  background-color: #f6f7f9;
+}
+
+.admin-team__container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.admin-team__eyebrow,
+.admin-team__section-heading span {
+  color: var(--beeux-yellow);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-team__title {
+  margin: 10px 0 12px;
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: clamp(34px, 5vw, 52px);
+}
+
+.admin-team__description {
+  max-width: 720px;
+  margin: 0 0 30px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.admin-team__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-team__summary article {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(30, 41, 55, 0.06);
+}
+
+.admin-team__summary span {
+  color: #667085;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-team__summary strong {
+  color: var(--beeux-navy);
+  font-size: 36px;
+}
+
+.admin-team__invite-section,
+.admin-team__members-section {
+  margin-top: 34px;
+  padding: 24px;
+  border: 1px solid #e4e7ec;
+  border-radius: 18px;
+  background-color: #ffffff;
+}
+
+.admin-team__section-heading {
+  margin-bottom: 18px;
+}
+
+.admin-team__section-heading h2 {
+  margin: 6px 0 0;
+  color: var(--beeux-navy);
+  font-family: "Gilmer Heavy", Arial, sans-serif;
+  font-size: 24px;
+}
+
+.admin-team__invite-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.admin-team__invite-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.admin-team__invite-form label span {
+  color: var(--beeux-navy);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-team__invite-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d5dbe2;
+  border-radius: 10px;
+  color: var(--beeux-navy);
+  font: inherit;
+}
+
+.admin-team__invite-form input:focus {
+  outline: none;
+  border-color: var(--beeux-yellow);
+  box-shadow: 0 0 0 3px rgba(249, 203, 16, 0.2);
+}
+
+.admin-team__invite-form button,
+.admin-team__invite-result button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-team__invite-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-team__message {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-team__message--success {
+  background-color: #ecfdf3;
+  color: #027a48;
+}
+
+.admin-team__message--error {
+  background-color: #fee4e2;
+  color: #b42318;
+}
+
+.admin-team__invite-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background-color: #f8fafc;
+}
+
+.admin-team__invite-result > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-team__invite-result span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-team__invite-result code {
+  overflow-wrap: anywhere;
+  color: var(--beeux-navy);
+  font-size: 12px;
+}
+
+.admin-team__members-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-team__member {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+}
+
+.admin-team__member-avatar {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--beeux-yellow);
+  color: var(--beeux-navy);
+  font-weight: 800;
+}
+
+.admin-team__member-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-team__member-info strong {
+  color: var(--beeux-navy);
+}
+
+.admin-team__member-info span {
+  overflow-wrap: anywhere;
+  color: #667085;
+  font-size: 13px;
+}
+
+.admin-team__role {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-team__role--admin {
+  background-color: #fff8dc;
+  color: #805d00;
+}
+
+.admin-team__role--employee {
+  background-color: #e8f1ff;
+  color: #24589b;
+}
+
+.admin-team__empty {
+  padding: 20px;
+  border: 1px dashed #d7dde4;
+  border-radius: 12px;
+  color: #667085;
+}
+
+@media screen and (max-width: 800px) {
+  .admin-team__summary,
+  .admin-team__invite-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-team__invite-form button {
+    width: 100%;
+  }
+
+  .admin-team__invite-result {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-team__invite-result button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .admin-team {
+    padding: 54px 14px 72px;
+  }
+
+  .admin-team__invite-section,
+  .admin-team__members-section {
+    padding: 18px;
+  }
+
+  .admin-team__member {
+    grid-template-columns: auto 1fr;
+  }
+
+  .admin-team__role {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+}

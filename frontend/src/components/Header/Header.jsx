@@ -76,9 +76,15 @@ function Header() {
               </Link>
 
               {currentUser.role === "admin" && (
-                <Link className="header__account-link" to="/admin/projects">
-                  Proyectos
-                </Link>
+                <>
+                  <Link className="header__account-link" to="/admin/projects">
+                    Proyectos
+                  </Link>
+
+                  <Link className="header__account-link" to="/admin/team">
+                    Equipo
+                  </Link>
+                </>
               )}
 
               <button
@@ -175,13 +181,23 @@ function Header() {
                   </Link>
 
                   {currentUser.role === "admin" && (
-                    <Link
-                      className="header__mobile-link"
-                      to="/admin/projects"
-                      onClick={handleCloseMenu}
-                    >
-                      Proyectos
-                    </Link>
+                    <>
+                      <Link
+                        className="header__mobile-link"
+                        to="/admin/projects"
+                        onClick={handleCloseMenu}
+                      >
+                        Proyectos
+                      </Link>
+
+                      <Link
+                        className="header__mobile-link"
+                        to="/admin/team"
+                        onClick={handleCloseMenu}
+                      >
+                        Equipo
+                      </Link>
+                    </>
                   )}
 
                   <button

@@ -18,6 +18,8 @@ import TeamDashboard from "./pages/TeamDashboard/TeamDashboard";
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
+import AdminTeam from "./pages/AdminTeam/AdminTeam";
+import TeamInviteAccept from "./pages/TeamInviteAccept/TeamInviteAccept";
 
 import { getCurrentUser } from "./api/authApi";
 
@@ -136,6 +138,17 @@ function App() {
             </AdminRoute>
           }
         />
+
+        <Route
+          path="/admin/team"
+          element={
+            <AdminRoute>
+              <AdminTeam />
+            </AdminRoute>
+          }
+        />
+
+        <Route path="/team/invitations/:token" element={<TeamInviteAccept />} />
 
         <Route
           path="/team/dashboard"
